@@ -1,5 +1,10 @@
+import { Team } from './team.schema';
+import { League } from './league.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import mongoose from 'mongoose';
+import { Type } from 'class-transformer';
+import { GameStateEnum } from 'src/enums/game-state.enum';
 
 export type GameDocument = Game & Document;
 
@@ -23,12 +28,12 @@ export class Game {
     })
     location: string;
 
-    // @Prop({
-    //     required: true,
-    //     enum: StateEnum,
-    //     default: StateEnum.smth
-    // })
-    // state: string;
+    @Prop({
+        required: true,
+        enum: GameStateEnum,
+        default: GameStateEnum.Scheduled
+    })
+    state: string;
 
     @Prop({
         index: true,
@@ -37,9 +42,18 @@ export class Game {
     })
     score: string;
 
-    // Team1Id
-    // Team1Id
-    // LeagueId
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: League.name })
+    @Type(() => League)
+    league: League;
+
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Team.name })
+    @Type(() => Team)
+    team1: Team;
+
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Team.name })
+    @Type(() => Team)
+    team2: Team;
+
 
     @Prop({ default: Date.now })
     createdAt!: Date;

@@ -1,11 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, ObjectId } from 'mongoose';
 import { UserRoleEnum } from 'src/enums/user-role.enum';
+import { Transform, Type } from 'class-transformer';
 
 export type UserDocument = User & Document;
 
 @Schema({ timestamps: true })
 export class User {
+    @Prop()
+    userId: string;
+
     @Prop({
         required: true,
         index: true,

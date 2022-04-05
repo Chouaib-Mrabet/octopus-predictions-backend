@@ -1,11 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { UserRoleEnum } from 'src/enums/user-role.enum';
 
-export type UserDocument = User & Document;
+export type GameDocument = Game & Document;
 
 @Schema({ timestamps: true })
-export class User {
+export class Game {
     @Prop({ type: Types.ObjectId })
     _id: Types.ObjectId;
 
@@ -14,7 +13,7 @@ export class User {
         index: true,
         trim: true,
     })
-    userName: string;
+    title: string;
 
     @Prop({
         required: true,
@@ -22,37 +21,25 @@ export class User {
         unique: true,
         trim: true,
     })
-    email: string;
+    location: string;
+
+    // @Prop({
+    //     required: true,
+    //     enum: StateEnum,
+    //     default: StateEnum.smth
+    // })
+    // state: string;
 
     @Prop({
         index: true,
         unique: true,
         trim: true,
     })
-    mobileNumber: string;
+    score: string;
 
-    @Prop({
-        required: true,
-    })
-    password: string;
-
-    @Prop({
-        required: true,
-    })
-    salt: string;
-
-    @Prop({
-        required: true,
-        enum: UserRoleEnum,
-        default: UserRoleEnum.USER
-    })
-    role: string;
-
-    @Prop({
-        required: true,
-        default: false
-    })
-    verified: boolean;
+    // Team1Id
+    // Team1Id
+    // LeagueId
 
     @Prop({ default: Date.now })
     createdAt!: Date;
@@ -61,4 +48,4 @@ export class User {
     updatedAt!: Date;
 }
 
-export const UserSchema = SchemaFactory.createForClass(User);
+export const GameSchema = SchemaFactory.createForClass(Game);

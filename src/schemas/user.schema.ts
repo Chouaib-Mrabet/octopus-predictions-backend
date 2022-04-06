@@ -31,7 +31,7 @@ export class User {
     @Prop({
         required: true,
     })
-    password: string;
+    hashedPassword: string;
 
     @Prop({
         required: true,

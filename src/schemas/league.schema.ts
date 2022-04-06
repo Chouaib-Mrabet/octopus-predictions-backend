@@ -8,9 +8,6 @@ export type LeagueDocument = League & Document;
 
 @Schema({ timestamps: true })
 export class League {
-    @Prop({ type: Types.ObjectId })
-    _id: Types.ObjectId;
-
     @Prop({
         required: true,
         index: true,

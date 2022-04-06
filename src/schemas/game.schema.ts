@@ -10,9 +10,6 @@ export type GameDocument = Game & Document;
 
 @Schema({ timestamps: true })
 export class Game {
-    @Prop({ type: Types.ObjectId })
-    _id: Types.ObjectId;
-
     @Prop({
         required: true,
         index: true,

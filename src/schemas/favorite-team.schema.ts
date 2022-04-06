@@ -9,9 +9,6 @@ export type FavoriteTeamDocument = FavoriteTeam & Document;
 
 @Schema({ timestamps: true })
 export class FavoriteTeam {
-    @Prop({ type: Types.ObjectId })
-    _id: Types.ObjectId;
-
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: User.name, required: true })
     @Type(() => User)
     user: User;

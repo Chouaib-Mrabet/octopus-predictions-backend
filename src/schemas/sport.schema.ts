@@ -5,9 +5,6 @@ export type SportDocument = Sport & Document;
 
 @Schema({ timestamps: true })
 export class Sport {
-    @Prop({type: Types.ObjectId})
-    _id: Types.ObjectId;
-
     @Prop({
         required: true,
         index: true,
@@ -17,7 +14,7 @@ export class Sport {
 
     @Prop({ default: Date.now })
     createdAt!: Date;
-  
+
     @Prop({ default: Date.now })
     updatedAt!: Date;
 }

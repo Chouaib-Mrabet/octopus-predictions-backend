@@ -5,9 +5,6 @@ export type TeamDocument = Team & Document;
 
 @Schema({ timestamps: true })
 export class Team {
-    @Prop({type: Types.ObjectId})
-    _id: Types.ObjectId;
-
     @Prop({
         required: true,
         index: true,
@@ -28,7 +25,7 @@ export class Team {
 
     @Prop({ default: Date.now })
     createdAt!: Date;
-  
+
     @Prop({ default: Date.now })
     updatedAt!: Date;
 }

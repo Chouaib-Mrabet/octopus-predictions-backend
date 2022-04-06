@@ -6,9 +6,6 @@ export type UserDocument = User & Document;
 
 @Schema({ timestamps: true })
 export class User {
-    @Prop({ type: Types.ObjectId })
-    _id: Types.ObjectId;
-
     @Prop({
         required: true,
         index: true,
@@ -34,12 +31,8 @@ export class User {
     @Prop({
         required: true,
     })
-    password: string;
+    hashedPassword: string;
 
-    @Prop({
-        required: true,
-    })
-    salt: string;
 
     @Prop({
         required: true,

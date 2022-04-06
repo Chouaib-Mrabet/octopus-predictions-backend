@@ -11,8 +11,7 @@ import { ConfigService } from '@nestjs/config';
   imports: [
     UserModule,
     MongooseModule.forRoot("mongodb+srv://user:mqwkzUkwQEFlaUTj@octopuspredictions.czilc.mongodb.net/OctopusPredictions?retryWrites=true&w=majorityAPP_PORT = 3000")],
-  controllers: [
-    UserController, AppController],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule { }

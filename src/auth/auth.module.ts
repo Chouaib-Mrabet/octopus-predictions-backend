@@ -9,15 +9,14 @@ import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     JwtModule.register({
-        secret: process.env.JWT_SECRET,
-        signOptions: { expiresIn:process.env.JWT_EXPIRES_IN },
-      }),
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN },
+    }),
   ],
   controllers: [AuthController],
-  providers: [AuthService,JwtStrategy],
+  providers: [AuthService, JwtStrategy],
 })
-export class AuthModule {}
+export class AuthModule { }

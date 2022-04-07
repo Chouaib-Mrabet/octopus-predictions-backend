@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { SignUpDto } from 'src/dto/signUp.dto';
+import { SignUpDto } from 'src/dto/sign-up.dto';
 import { User, UserDocument } from 'src/schemas/user.schema';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from 'src/dto/login.dto';
@@ -12,20 +12,22 @@ export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   hello() {
     return 'hello from auth';
   }
 
   async signUp(signUpDto: SignUpDto): Promise<{ accessToken: string }> {
+
     let existingCredentials =
       (await this.userModel.findOne({
         userName: signUpDto.userName,
         email: signUpDto.email,
       })) != null;
+
     if (existingCredentials)
-      throw new BadRequestException('username or email already in use .');
+      throw new BadRequestException('Username or email already in use .');
 
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(signUpDto.password, salt);
@@ -34,7 +36,9 @@ export class AuthService {
       ...signUpDto,
       hashedPassword: hashedPassword,
     });
-    console.log(newUser);
+
+    //console.log(newUser);
+
     await newUser.save();
     return this.generateToken(newUser);
   }
@@ -44,8 +48,7 @@ export class AuthService {
       userName: loginDto.userName,
     });
 
-    if (
-      !actualUser ||
+    if (!actualUser ||
       !(await bcrypt.compare(loginDto.password, actualUser.hashedPassword))
     )
       throw new BadRequestException('wrong password .');
@@ -55,6 +58,7 @@ export class AuthService {
 
   generateToken(user: User): { accessToken: string } {
     const payload = { username: user.userName, role: user.role };
+
     return {
       accessToken: this.jwtService.sign(payload),
     };

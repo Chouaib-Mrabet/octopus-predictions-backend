@@ -9,7 +9,6 @@ export type CommentDocument = Comment & Document;
 
 @Schema({ timestamps: true })
 export class Comment {
-
     @Prop({
         required: true,
         trim: true,

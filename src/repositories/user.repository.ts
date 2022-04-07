@@ -1,8 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { FilterQuery, Model } from "mongoose";
-import { CreateUserDto, UpdateUserDto } from "src/dto/user.dto";
-
+import { Model } from "mongoose";
+import { UpdateUserDto } from "src/dto/update-user.dto";
 import { User, UserDocument } from "../schemas/user.schema";
 
 @Injectable()
@@ -14,11 +13,6 @@ export class UserRepository {
     }
     async findAll(): Promise<User[]> {
         return this.userModel.find().exec();
-    }
-
-    async create(user: CreateUserDto): Promise<User> {
-        const newUser = new this.userModel(user);
-        return newUser.save()
     }
 
     async update(id: string, changes: UpdateUserDto): Promise<User> {

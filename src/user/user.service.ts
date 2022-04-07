@@ -1,4 +1,4 @@
-import { CreateUserDto, UpdateUserDto } from './../dto/user.dto';
+import { UpdateUserDto } from '../dto/update-user.dto';
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from 'src/repositories/user.repository';
 import { User } from 'src/schemas/user.schema';
@@ -13,10 +13,6 @@ export class UserService {
 
     async getUsers(): Promise<User[]> {
         return this.userRepository.findAll();
-    }
-
-    async createUser(user: CreateUserDto): Promise<User> {
-        return this.userRepository.create(user);
     }
 
     async updateUser(userId: string, user: UpdateUserDto): Promise<User> {

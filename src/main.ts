@@ -16,4 +16,4 @@ async function bootstrap() {
   await app.listen(process.env.APP_PORT);
 }
 
-setTimeout(bootstrap,4)
+setTimeout(bootstrap, 4)

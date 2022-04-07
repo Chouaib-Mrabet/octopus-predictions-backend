@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { ApiProperty } from '@nestjs/swagger';
 import { Document, Types } from 'mongoose';
 import { UserRoleEnum } from 'src/enums/user-role.enum';
 
@@ -6,6 +7,7 @@ export type UserDocument = User & Document;
 
 @Schema({ timestamps: true })
 export class User {
+
     @Prop({
         required: true,
         index: true,

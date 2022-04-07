@@ -1,21 +1,69 @@
+import { AuthService } from './../auth/auth.service';
 import { UpdateUserDto } from '../dto/update-user.dto';
-import { Injectable } from '@nestjs/common';
-import { UserRepository } from 'src/repositories/user.repository';
-import { User } from 'src/schemas/user.schema';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { User, UserDocument } from 'src/schemas/user.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from "mongoose";
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
-    constructor(private readonly userRepository: UserRepository) { }
+    constructor(@InjectModel(User.name) private userModel: Model<UserDocument>,
+        private authService: AuthService
+    ) { }
 
-    async getUserById(userId: string): Promise<User> {
-        return this.userRepository.findOne(userId);
+    async updateUser(id: string, userDto: UpdateUserDto): Promise<{ accessToken: string; }> {
+
+        let userFromDb = await this.userModel.findOne({ id: id });
+
+
+        if (!userFromDb) throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+
+        if (userDto.userName) {
+            if (userFromDb.userName != userDto.userName) {
+                let user = await this.userModel.findOne({ userName: userDto.userName });
+                if (user)
+                    throw new BadRequestException('This username is used');
+                else
+                    userFromDb.userName = userDto.userName;
+            }
+        }
+
+        if (userDto.email) {
+            if (userFromDb.email != userDto.email) {
+                let user = await this.userModel.findOne({ email: userDto.email });
+                if (user)
+                    throw new BadRequestException('This email is used');
+                else
+                    userFromDb.email = userDto.email;
+            }
+        }
+
+        if (userDto.mobileNumber) {
+            if (userFromDb.mobileNumber != userDto.mobileNumber) {
+                let user = await this.userModel.findOne({ mobileNumber: userDto.mobileNumber });
+                if (user)
+                    throw new BadRequestException('This mobileNumber is used');
+                else
+                    userFromDb.mobileNumber = userDto.mobileNumber;
+            }
+        }
+        if (userDto.oldpassword && userDto.oldpassword) {
+            if (await bcrypt.compare(userDto.oldpassword, userFromDb.hashedPassword)) {
+                const salt = await bcrypt.genSalt();
+                const hashedPassword = await bcrypt.hash(userDto.newpassword, salt);
+                userFromDb.hashedPassword = hashedPassword;
+            }
+            else {
+                throw new BadRequestException('wrong password .');
+            }
+        }
+
+        await this.userModel.findByIdAndUpdate(userFromDb.id, userFromDb);
+
+        return await this.authService.generateToken(userFromDb);
     }
 
-    async getUsers(): Promise<User[]> {
-        return this.userRepository.findAll();
-    }
 
-    async updateUser(userId: string, user: UpdateUserDto): Promise<User> {
-        return this.userRepository.update(userId, user);
-    }
+
 }

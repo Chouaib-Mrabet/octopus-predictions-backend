@@ -8,6 +8,8 @@ import { ConfigModule } from '@nestjs/config';
 import { FootballModule } from './football/football.module';
 import { FootballAdminController } from './football-admin/football-admin.controller';
 import { FootballAdminModule } from './football-admin/football-admin.module';
+import { SportsAdminModule } from './sports-admin/sports-admin.module';
+import { SportsModule } from './sports/sports.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { FootballAdminModule } from './football-admin/football-admin.module';
     AuthModule,
     FootballModule,
     FootballAdminModule,
+    SportsAdminModule,
+    SportsModule,
   ],
   controllers: [AppController, FootballAdminController],
   providers: [AppService],

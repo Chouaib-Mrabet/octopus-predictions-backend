@@ -24,7 +24,7 @@ import { SportsModule } from './sports/sports.module';
     SportsAdminModule,
     SportsModule,
   ],
-  controllers: [AppController, FootballAdminController],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}

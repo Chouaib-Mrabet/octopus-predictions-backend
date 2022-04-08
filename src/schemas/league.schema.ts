@@ -3,6 +3,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Document, Types } from 'mongoose';
 import { Type } from 'class-transformer';
+import { Country } from './country.schema';
 
 export type LeagueDocument = League & Document;
 
@@ -12,6 +13,7 @@ export class League {
     required: true,
     index: true,
     trim: true,
+    unique:true
   })
   name: string;
 
@@ -24,6 +26,10 @@ export class League {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Sport.name })
   @Type(() => Sport)
   sport: Sport;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Country.name })
+  @Type(() => Country)
+  country: Country;
 }
 
 export const LeagueSchema = SchemaFactory.createForClass(League);

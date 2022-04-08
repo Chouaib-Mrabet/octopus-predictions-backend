@@ -9,19 +9,27 @@ export type FavoriteTeamDocument = FavoriteTeam & Document;
 
 @Schema({ timestamps: true })
 export class FavoriteTeam {
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: User.name, required: true })
-    @Type(() => User)
-    user: User;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: User.name,
+    required: true,
+  })
+  @Type(() => User)
+  user: User;
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Team.name, required: true })
-    @Type(() => Team)
-    team: Team;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Team.name,
+    required: true,
+  })
+  @Type(() => Team)
+  team: Team;
 
-    @Prop({ default: Date.now })
-    createdAt!: Date;
+  @Prop({ default: Date.now })
+  createdAt!: Date;
 
-    @Prop({ default: Date.now })
-    updatedAt!: Date;
+  @Prop({ default: Date.now })
+  updatedAt!: Date;
 }
 
 export const FavoriteTeamSchema = SchemaFactory.createForClass(FavoriteTeam);

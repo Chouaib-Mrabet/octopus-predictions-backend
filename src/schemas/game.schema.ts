@@ -10,53 +10,52 @@ export type GameDocument = Game & Document;
 
 @Schema({ timestamps: true })
 export class Game {
-    @Prop({
-        required: true,
-        index: true,
-        trim: true,
-    })
-    title: string;
+  @Prop({
+    required: true,
+    index: true,
+    trim: true,
+  })
+  title: string;
 
-    @Prop({
-        required: true,
-        index: true,
-        unique: true,
-        trim: true,
-    })
-    location: string;
+  @Prop({
+    required: true,
+    index: true,
+    unique: true,
+    trim: true,
+  })
+  location: string;
 
-    @Prop({
-        required: true,
-        enum: GameStateEnum,
-        default: GameStateEnum.Scheduled
-    })
-    state: string;
+  @Prop({
+    required: true,
+    enum: GameStateEnum,
+    default: GameStateEnum.Scheduled,
+  })
+  state: string;
 
-    @Prop({
-        index: true,
-        unique: true,
-        trim: true,
-    })
-    score: string;
+  @Prop({
+    index: true,
+    unique: true,
+    trim: true,
+  })
+  score: string;
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: League.name })
-    @Type(() => League)
-    league: League;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: League.name })
+  @Type(() => League)
+  league: League;
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Team.name })
-    @Type(() => Team)
-    team1: Team;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Team.name })
+  @Type(() => Team)
+  team1: Team;
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Team.name })
-    @Type(() => Team)
-    team2: Team;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Team.name })
+  @Type(() => Team)
+  team2: Team;
 
+  @Prop({ default: Date.now })
+  createdAt!: Date;
 
-    @Prop({ default: Date.now })
-    createdAt!: Date;
-
-    @Prop({ default: Date.now })
-    updatedAt!: Date;
+  @Prop({ default: Date.now })
+  updatedAt!: Date;
 }
 
 export const GameSchema = SchemaFactory.createForClass(Game);

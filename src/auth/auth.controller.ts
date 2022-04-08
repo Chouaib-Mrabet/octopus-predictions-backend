@@ -1,13 +1,20 @@
-import { Body, Controller, Get, Post, UseGuards, ValidationPipe, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+  ValidationPipe,
+  Request,
+} from '@nestjs/common';
 import { LoginDto } from 'src/dto/login.dto';
 import { SignUpDto } from 'src/dto/sign-up.dto';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
-
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Get()
   getHello(): string {
@@ -27,7 +34,6 @@ export class AuthController {
   ): Promise<{ accessToken: string }> {
     return this.authService.login(loginDto);
   }
-
 
   @UseGuards(JwtAuthGuard)
   @Get('whoami')

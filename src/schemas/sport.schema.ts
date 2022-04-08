@@ -5,18 +5,18 @@ export type SportDocument = Sport & Document;
 
 @Schema({ timestamps: true })
 export class Sport {
-    @Prop({
-        required: true,
-        index: true,
-        trim: true,
-    })
-    name: string;
+  @Prop({
+    required: true,
+    index: true,
+    trim: true,
+  })
+  name: string;
 
-    @Prop({ default: Date.now })
-    createdAt!: Date;
+  @Prop({ default: Date.now })
+  createdAt!: Date;
 
-    @Prop({ default: Date.now })
-    updatedAt!: Date;
+  @Prop({ default: Date.now })
+  updatedAt!: Date;
 }
 
 export const SportSchema = SchemaFactory.createForClass(Sport);

@@ -22,4 +22,3 @@ export class SignUpDto {
   @ApiProperty({ description: 'the user password' })
   readonly password: string;
 }
-

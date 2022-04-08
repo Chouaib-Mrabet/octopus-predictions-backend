@@ -9,25 +9,33 @@ export type CommentDocument = Comment & Document;
 
 @Schema({ timestamps: true })
 export class Comment {
-    @Prop({
-        required: true,
-        trim: true,
-    })
-    content: string;
+  @Prop({
+    required: true,
+    trim: true,
+  })
+  content: string;
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: User.name, required: true })
-    @Type(() => User)
-    user: User;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: User.name,
+    required: true,
+  })
+  @Type(() => User)
+  user: User;
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Game.name, required: true })
-    @Type(() => Game)
-    game: Game;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Game.name,
+    required: true,
+  })
+  @Type(() => Game)
+  game: Game;
 
-    @Prop({ default: Date.now })
-    createdAt!: Date;
+  @Prop({ default: Date.now })
+  createdAt!: Date;
 
-    @Prop({ default: Date.now })
-    updatedAt!: Date;
+  @Prop({ default: Date.now })
+  updatedAt!: Date;
 }
 
 export const CommentSchema = SchemaFactory.createForClass(Comment);

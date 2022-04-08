@@ -12,14 +12,13 @@ export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private jwtService: JwtService,
-  ) { }
+  ) {}
 
   hello() {
     return 'hello from auth';
   }
 
   async signUp(signUpDto: SignUpDto): Promise<{ accessToken: string }> {
-
     let existingCredentials =
       (await this.userModel.findOne({
         userName: signUpDto.userName,
@@ -48,7 +47,8 @@ export class AuthService {
       userName: loginDto.userName,
     });
 
-    if (!actualUser ||
+    if (
+      !actualUser ||
       !(await bcrypt.compare(loginDto.password, actualUser.hashedPassword))
     )
       throw new BadRequestException('wrong password .');

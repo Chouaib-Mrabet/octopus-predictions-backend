@@ -1,3 +1,4 @@
+import { UserRoleEnum } from './../enums/user-role.enum';
 import {
   Body,
   Controller,
@@ -13,13 +14,16 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Userd } from 'src/decorators/userd.decorator';
 import { UpdateUserDto } from 'src/dto/update-user.dto';
 import { User } from 'src/schemas/user.schema';
+import { Roles } from 'src/decorators/roles.decorator';
+import { RolesGuard } from 'src/guards/roles.guard';
 
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
 
   @Get('all')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoleEnum.ADMIN)
   findAll(): Promise<User[]> {
     return this.userService.findAll();
   }

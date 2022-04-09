@@ -13,7 +13,6 @@ export class League {
     required: true,
     index: true,
     trim: true,
-    unique:true
   })
   name: string;
 

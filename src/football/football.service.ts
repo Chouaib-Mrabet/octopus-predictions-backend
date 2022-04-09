@@ -18,4 +18,10 @@ export class FootballService {
   async getAllLeagues(): Promise<League[]> {
     return await this.leagueModel.find().populate('country').populate('sport');
   }
+
+  async getLeaguesByCountry(countryName: string): Promise<League[]> {
+    const country = await this.countryModel.findOne({ name: countryName });
+
+    return await this.leagueModel.find({ country: country._id });
+  }
 }

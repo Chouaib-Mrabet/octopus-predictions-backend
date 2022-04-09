@@ -1,5 +1,8 @@
+import { League } from './league.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import mongoose from 'mongoose';
+import { Type } from 'class-transformer';
 
 export type TeamDocument = Team & Document;
 
@@ -22,6 +25,10 @@ export class Team {
     trim: true,
   })
   squad: string;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: League.name })
+  @Type(() => League)
+  league: League;
 
   @Prop({ default: Date.now })
   createdAt!: Date;

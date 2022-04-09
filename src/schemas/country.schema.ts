@@ -1,15 +1,16 @@
+
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type SportDocument = Sport & Document;
+export type CountryDocument = Country & Document;
 
 @Schema({ timestamps: true })
-export class Sport {
+export class Country {
   @Prop({
     required: true,
     index: true,
     trim: true,
-    unique:true,
+    unique:true
   })
   name: string;
 
@@ -20,4 +21,5 @@ export class Sport {
   updatedAt!: Date;
 }
 
-export const SportSchema = SchemaFactory.createForClass(Sport);
+
+export const CountrySchema = SchemaFactory.createForClass(Country);

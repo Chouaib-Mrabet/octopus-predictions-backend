@@ -1,3 +1,5 @@
+import { User } from './../schemas/user.schema';
+import { Game, GameDocument } from './../schemas/game.schema';
 import { Team, TeamDocument } from './../schemas/team.schema';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -11,6 +13,7 @@ export class FootballService {
     @InjectModel(Country.name) private countryModel: Model<CountryDocument>,
     @InjectModel(League.name) private leagueModel: Model<LeagueDocument>,
     @InjectModel(Team.name) private teamModel: Model<TeamDocument>,
+    @InjectModel(Game.name) private gameModel: Model<GameDocument>,
   ) {}
 
   async getCountries(): Promise<Country[]> {
@@ -56,4 +59,27 @@ export class FootballService {
 
     return await this.teamModel.find({ league: league });
   }
+
+  async getGamesByLeague(
+    countryName: string,
+    leagueName: string,
+  ): Promise<any[]> {
+    const country = await this.countryModel.findOne({ name: countryName });
+
+    const league = await this.leagueModel.find({
+      name: leagueName,
+      country: country._id,
+    });
+
+    return await this.gameModel
+      .find({ league: league })
+      .populate('team1')
+      .populate('team2');
+  }
+
+  // async getFavoriteGames(user: User): Promise<Game[]> {
+  //   return (await this.gameModel.find({ user: user },).populate('game')).map(
+  //     (x) => x.game,
+  //   );
+  // }
 }

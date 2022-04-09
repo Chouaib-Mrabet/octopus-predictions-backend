@@ -18,6 +18,10 @@ export class UserService {
     private authService: AuthService,
   ) {}
 
+  async findAll(): Promise<User[]> {
+    return this.userModel.find();
+  }
+
   async updateUser(
     id: string,
     userDto: UpdateUserDto,

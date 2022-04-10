@@ -14,7 +14,7 @@ export class FootballController {
   @Get('leagues')
   async getAllLeagues(): Promise<League[]> {
     let leagues = await this.footballService.getAllLeagues();
-    console.log(leagues[0].country.name)
-    return leagues
+    console.log(leagues[0].country.name);
+    return leagues;
   }
 }

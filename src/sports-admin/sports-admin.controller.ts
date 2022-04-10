@@ -9,16 +9,11 @@ export class SportsAdminController {
   @Get('scrapeSports')
   async scrapeSports(): Promise<string[]> {
     let sportsNames: string[] = await this.sportsAdminService.scrapeSports();
-    let sports=[]
-    
+    let sports = [];
+
     for (let i = 0; i < sportsNames.length; i++) {
-        
-      sports.push( await this.sportsAdminService.saveSport(sportsNames[i]));
+      sports.push(await this.sportsAdminService.saveSport(sportsNames[i]));
     }
-    return sports ;
+    return sports;
   }
-
-
-
-
 }

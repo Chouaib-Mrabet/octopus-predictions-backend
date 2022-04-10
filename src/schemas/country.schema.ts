@@ -1,4 +1,3 @@
-
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
@@ -10,7 +9,7 @@ export class Country {
     required: true,
     index: true,
     trim: true,
-    unique:true
+    unique: true,
   })
   name: string;
 
@@ -20,6 +19,5 @@ export class Country {
   @Prop({ default: Date.now })
   updatedAt!: Date;
 }
-
 
 export const CountrySchema = SchemaFactory.createForClass(Country);

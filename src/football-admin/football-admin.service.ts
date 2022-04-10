@@ -5,6 +5,9 @@ import { Model } from 'mongoose';
 import * as puppeteer from 'puppeteer-core';
 import { Country, CountryDocument } from 'src/schemas/country.schema';
 import { Sport, SportDocument } from 'src/schemas/sport.schema';
+import { Team, TeamDocument } from 'src/schemas/team.schema';
+import { Logo, LogoDocument } from 'src/schemas/logo.schema';
+const axios = require('axios').default;
 
 @Injectable()
 export class FootballAdminService {
@@ -12,6 +15,8 @@ export class FootballAdminService {
     @InjectModel(League.name) private leagueModel: Model<LeagueDocument>,
     @InjectModel(Country.name) private countryModel: Model<CountryDocument>,
     @InjectModel(Sport.name) private sportModel: Model<SportDocument>,
+    @InjectModel(Team.name) private teamModel: Model<TeamDocument>,
+    @InjectModel(Logo.name) private logoModel: Model<LogoDocument>,
   ) {}
 
   async scrapeCountries(): Promise<string[]> {
@@ -59,9 +64,19 @@ export class FootballAdminService {
     }
     return newCountry;
   }
+
   async getCountries(): Promise<Country[]> {
     return await this.countryModel.find();
   }
+
+  async getLeagues(): Promise<League[]> {
+    return await this.leagueModel.find().populate('country');
+  }
+
+  async getTeams(): Promise<Team[]> {
+    return await this.teamModel.find().populate('logo');
+  }
+
   async scrapeLeagues(country: Country): Promise<string[]> {
     const browser = await puppeteer.launch({
       executablePath: '/usr/bin/google-chrome',
@@ -107,4 +122,127 @@ export class FootballAdminService {
     }
     return newLeague;
   }
+
+  async scrapeTeams(league: League): Promise<
+    {
+      teamName: string;
+      teamFlashscoreId: string;
+      countryName: string;
+      logoFlashscoreId: string;
+    }[]
+  > {
+    const browser = await puppeteer.launch({
+      executablePath: '/usr/bin/google-chrome',
+    });
+    const page = await browser.newPage();
+
+    let url = `https://www.flashscore.com/football/${league.country.name}/${league.name}/standings`;
+
+    await page.goto(url, {
+      waitUntil: 'load',
+      timeout: 0,
+    });
+
+    let teamsInfo = await page.$$eval(
+      '.tableCellParticipant__image',
+      (teamsDomElements) => {
+        return teamsDomElements.map((teamDomElement) => ({
+          teamName: teamDomElement.getAttribute('href').split('/')[2],
+          teamFlashscoreId: teamDomElement.getAttribute('href').split('/')[3],
+          countryName: null,
+          logoFlashscoreId: null,
+        }));
+      },
+    );
+
+    for (let i = 0; i < teamsInfo.length; i++) {
+      await page.goto(
+        `https://www.flashscore.com/team/${teamsInfo[i].teamName}/${teamsInfo[i].teamFlashscoreId}/`,
+        {
+          waitUntil: 'load',
+          timeout: 0,
+        },
+      );
+
+      let countryName = await page.$$eval(
+        '.breadcrumb__link',
+        (elements) => elements[1].getAttribute('href').split('/')[2],
+      );
+
+      let logoId = await page.$eval(
+        '.heading__logo',
+        (element: HTMLElement) =>
+          element.style.backgroundImage.slice(5, -6).split('/')[4],
+      );
+
+      teamsInfo[i].countryName = countryName;
+      teamsInfo[i].logoFlashscoreId = logoId;
+    }
+
+    await browser.close();
+
+    return teamsInfo;
+  }
+
+  async saveTeam(
+    teamName: string,
+    teamFlashscoreId: string,
+    logoFlashscoreId: string,
+    countryName: string,
+  ): Promise<Team> {
+    try {
+      let team = await this.teamModel.findOne({
+        name: teamName,
+        flashscoreId: teamFlashscoreId,
+      });
+
+      if (team) return team;
+
+      let country = await this.countryModel.findOne({ name: countryName });
+      let logo = await this.logoModel.findOne({
+        flashscoreId: logoFlashscoreId,
+      });
+      if (logo == null) {
+        logo = new this.logoModel({ flashscoreId: logoFlashscoreId });
+        let logoUrl = `https://www.flashscore.com/res/image/data/${logoFlashscoreId}.png`;
+        logo.data = Buffer.from(
+          (await axios.get(logoUrl, { responseType: 'arraybuffer' })).data,
+          'utf-8',
+        );
+        await logo.save();
+      }
+      let football = await this.sportModel.findOne({ name: 'football' });
+      team = new this.teamModel({
+        name: teamName,
+        sport: football,
+        flashscoreId: teamFlashscoreId,
+        logo: logo,
+        country: country,
+      });
+
+      team.save();
+      return team;
+    } catch (error) {
+      console.log(error, teamName, teamFlashscoreId);
+    }
+  }
+
+  // async saveTeam() {
+  //   let football = await this.sportModel.findOne({ name: 'football' });
+  //   let albania = await this.countryModel.findOne({ name: 'albania' });
+
+  //   let logoUrl =
+  //     'https://www.flashscore.com/res/image/data/EwJqZUZA-Onr593up.png';
+
+  //   const response = await axios.get(logoUrl, { responseType: 'arraybuffer' });
+  //   const buffer = Buffer.from(response.data, 'utf-8');
+  //   return buffer;
+
+  // let team = new this.teamModel({
+  //   name: 'test',
+  //   country: albania,
+  //   sport: football,
+  // });
+  // return await team.save();
+  // }
 }

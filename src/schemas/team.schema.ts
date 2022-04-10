@@ -1,5 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Type } from 'class-transformer';
+import mongoose from 'mongoose';
 import { Document, Types } from 'mongoose';
+import { Country } from './country.schema';
+import { Logo } from './logo.schema';
+import { Sport } from './sport.schema';
 
 export type TeamDocument = Team & Document;
 
@@ -13,15 +18,28 @@ export class Team {
   name: string;
 
   @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Sport.name,
     required: true,
-    trim: true,
   })
-  country: string;
+  @Type(() => Sport)
+  sport: Sport;
 
   @Prop({
-    trim: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Country.name,
+    required: true,
   })
-  squad: string;
+  @Type(() => Country)
+  country: Country;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Logo.name })
+  logo: Logo;
+
+  @Prop({
+    unique: true,
+  })
+  flashscoreId: string;
 
   @Prop({ default: Date.now })
   createdAt!: Date;

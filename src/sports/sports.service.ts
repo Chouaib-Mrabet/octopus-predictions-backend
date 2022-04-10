@@ -5,12 +5,11 @@ import { Model } from 'mongoose';
 
 @Injectable()
 export class SportsService {
+  constructor(
+    @InjectModel(Sport.name) private sportModel: Model<SportDocument>,
+  ) {}
 
-    constructor(
-        @InjectModel(Sport.name) private sportModel: Model<SportDocument>
-      ) {}
-
-      async getSports(): Promise<Sport[]> {
-        return await this.sportModel.find()
-      }
+  async getSports(): Promise<Sport[]> {
+    return await this.sportModel.find();
+  }
 }

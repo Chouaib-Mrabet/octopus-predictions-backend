@@ -5,10 +5,10 @@ import { SportsController } from './sports.controller';
 import { SportsService } from './sports.service';
 
 @Module({
-  imports:[
+  imports: [
     MongooseModule.forFeature([{ name: Sport.name, schema: SportSchema }]),
   ],
   controllers: [SportsController],
-  providers: [SportsService]
+  providers: [SportsService],
 })
 export class SportsModule {}

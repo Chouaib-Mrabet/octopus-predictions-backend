@@ -6,11 +6,11 @@ import { FootballController } from './football.controller';
 import { FootballService } from './football.service';
 
 @Module({
-  imports:[
+  imports: [
     MongooseModule.forFeature([{ name: Country.name, schema: CountrySchema }]),
-    MongooseModule.forFeature([{ name: League.name, schema: LeagueSchema }])
+    MongooseModule.forFeature([{ name: League.name, schema: LeagueSchema }]),
   ],
   controllers: [FootballController],
-  providers: [FootballService]
+  providers: [FootballService],
 })
 export class FootballModule {}

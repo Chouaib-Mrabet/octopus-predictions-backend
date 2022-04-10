@@ -9,7 +9,7 @@ export class Sport {
     required: true,
     index: true,
     trim: true,
-    unique:true,
+    unique: true,
   })
   name: string;
 

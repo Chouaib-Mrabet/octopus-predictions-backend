@@ -23,4 +23,11 @@ export class FootballController {
     let teams = await this.footballService.getTeams();
     return teams;
   }
+
+  @Get('getLogo/:id')
+  @Header('content-type', 'image/png')
+  async getLogo(@Res() res, @Param('id') id: string) {
+    let logo = await this.footballService.getLogo(id);
+    res.send(logo.data);
+  }
 }

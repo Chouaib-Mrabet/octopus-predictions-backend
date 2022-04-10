@@ -198,7 +198,7 @@ export class FootballAdminService {
 
       if (team) return team;
 
-      let country = await this.countryModel.findOne({ name: countryName });
+      let country = await this.saveCountry(countryName)
       let logo = await this.logoModel.findOne({
         flashscoreId: logoFlashscoreId,
       });

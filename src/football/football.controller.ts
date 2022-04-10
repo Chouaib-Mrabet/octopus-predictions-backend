@@ -1,6 +1,7 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Header, Param, Res } from '@nestjs/common';
 import { Country } from 'src/schemas/country.schema';
 import { League } from 'src/schemas/league.schema';
+import { Team } from 'src/schemas/team.schema';
 import { FootballService } from './football.service';
 
 @Controller('football')
@@ -12,9 +13,14 @@ export class FootballController {
     return this.footballService.getCountries();
   }
   @Get('leagues')
-  async getAllLeagues(): Promise<League[]> {
-    let leagues = await this.footballService.getAllLeagues();
-    console.log(leagues[0].country.name);
+  async getLeagues(): Promise<League[]> {
+    let leagues = await this.footballService.getLeagues();
     return leagues;
+  }
+
+  @Get('teams')
+  async getTeams(): Promise<Team[]> {
+    let teams = await this.footballService.getTeams();
+    return teams;
   }
 }

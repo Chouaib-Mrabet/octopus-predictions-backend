@@ -30,3 +30,4 @@ export class UserController {
     return await this.userService.updateUser(userd._id, updateUserDto);
   }
 }
+

@@ -1,3 +1,7 @@
+import {
+  FavoriteGame,
+  FavoriteGameDocument,
+} from './../schemas/favorite-game.schema';
 import { User } from './../schemas/user.schema';
 import { Game, GameDocument } from './../schemas/game.schema';
 import { Team, TeamDocument } from './../schemas/team.schema';
@@ -14,6 +18,8 @@ export class FootballService {
     @InjectModel(League.name) private leagueModel: Model<LeagueDocument>,
     @InjectModel(Team.name) private teamModel: Model<TeamDocument>,
     @InjectModel(Game.name) private gameModel: Model<GameDocument>,
+    @InjectModel(FavoriteGame.name)
+    private favoriteGameModel: Model<FavoriteGameDocument>,
   ) {}
 
   async getCountries(): Promise<Country[]> {
@@ -46,18 +52,13 @@ export class FootballService {
     return List;
   }
 
-  async getTeamsByLeague(
-    countryName: string,
-    leagueName: string,
-  ): Promise<Team[]> {
+  async getTeamsByCountry(countryName: string): Promise<Team[]> {
     const country = await this.countryModel.findOne({ name: countryName });
 
-    const league = await this.leagueModel.find({
-      name: leagueName,
-      country: country._id,
-    });
+    console.log(country._id);
+    const teams = await this.teamModel.find({ country: country._id });
 
-    return await this.teamModel.find({ league: league });
+    return teams;
   }
 
   async getGamesByLeague(
@@ -77,9 +78,15 @@ export class FootballService {
       .populate('team2');
   }
 
-  // async getFavoriteGames(user: User): Promise<Game[]> {
-  //   return (await this.gameModel.find({ user: user },).populate('game')).map(
-  //     (x) => x.game,
-  //   );
-  // }
+  async getFavoriteGames(user: User): Promise<Game[]> {
+    let List = await this.favoriteGameModel.find({ user: user });
+    let favoriteGames = [];
+
+    for (let fv in List) {
+      let game = await this.gameModel.findOne({ game: fv }).populate('game');
+
+      favoriteGames.push(game);
+    }
+    return favoriteGames;
+  }
 }

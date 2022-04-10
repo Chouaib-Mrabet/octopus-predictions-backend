@@ -47,15 +47,13 @@ export class FootballController {
     return leaguesByCountry;
   }
 
-  // List of Teams per League :
-  @Get('/:country/:league')
-  async getTeamsByLeague(
+  // List of Teams per country :
+  @Get('/:country/teams')
+  async getTeamsByCountry(
     @Param('country') countryName: string,
-    @Param('league') leagueName: string,
   ): Promise<Team[]> {
-    let teamsByLeague = await this.footballService.getTeamsByLeague(
+    let teamsByLeague = await this.footballService.getTeamsByCountry(
       countryName,
-      leagueName,
     );
 
     return teamsByLeague;
@@ -80,11 +78,11 @@ export class FootballController {
   // Favorites :
   // List of my favorite games  :
   // TODO : Add Filters && Pagination
-  // @Get('/favorite/games')
-  // @UseGuards(JwtAuthGuard)
-  // async getFavoriteGames(@Userd() userd): Promise<Game[]> {
-  //   let favoriteGames = await this.footballService.getFavoriteGames(userd);
+  @Get('/favorite/games')
+  @UseGuards(JwtAuthGuard)
+  async getFavoriteGames(@Userd() userd): Promise<Game[]> {
+    let favoriteGames = await this.footballService.getFavoriteGames(userd);
 
-  //   return favoriteGames;
-  // }
+    return favoriteGames;
+  }
 }

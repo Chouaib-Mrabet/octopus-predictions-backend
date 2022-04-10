@@ -62,12 +62,4 @@ export class FootballAdminController {
       }
     }
   }
-
-  // @Get('getLogo')
-  // @Header('content-type', 'image/png')
-  // async getLogo(@Res() res) {
-  //   let teams = await this.footballAdminService.getTeams();
-  //   console.log();
-  //   res.send(teams[2].logo.data);
-  // }
 }

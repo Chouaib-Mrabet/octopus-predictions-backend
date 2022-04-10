@@ -226,23 +226,4 @@ export class FootballAdminService {
       console.log(error, teamName, teamFlashscoreId);
     }
   }
-
-  // async saveTeam() {
-  //   let football = await this.sportModel.findOne({ name: 'football' });
-  //   let albania = await this.countryModel.findOne({ name: 'albania' });
-
-  //   let logoUrl =
-  //     'https://www.flashscore.com/res/image/data/EwJqZUZA-Onr593up.png';
-
-  //   const response = await axios.get(logoUrl, { responseType: 'arraybuffer' });
-  //   const buffer = Buffer.from(response.data, 'utf-8');
-  //   return buffer;
-
-  // let team = new this.teamModel({
-  //   name: 'test',
-  //   country: albania,
-  //   sport: football,
-  // });
-  // return await team.save();
-  // }
 }

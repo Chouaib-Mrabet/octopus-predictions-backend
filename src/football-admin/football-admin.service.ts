@@ -95,7 +95,7 @@ export class FootballAdminService {
       timeout: 0,
     });
 
-    let countryFlagId = await page.$eval('.leftMenu__flag.flag', (flag) => {
+    let countryFlagId = await page.$eval('.breadcrumb__flag.flag', (flag) => {
       let url = getComputedStyle(flag)
         .getPropertyValue('background-image')
         .slice(5, -6)
@@ -104,6 +104,7 @@ export class FootballAdminService {
     });
 
     await browser.close();
+    if(!countryFlagId) countryFlagId="world.b7d16db."
     return countryFlagId;
   }
 

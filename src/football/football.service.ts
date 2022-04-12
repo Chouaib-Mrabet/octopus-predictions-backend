@@ -20,34 +20,26 @@ export class FootballService {
     @InjectModel(League.name) private leagueModel: Model<LeagueDocument>,
     @InjectModel(Team.name) private teamModel: Model<TeamDocument>,
     @InjectModel(Logo.name) private logoModel: Model<LogoDocument>,
-
     @InjectModel(Flag.name) private flagModel: Model<FlagDocument>,
-
     @InjectModel(Game.name) private gameModel: Model<GameDocument>,
     @InjectModel(FavoriteGame.name)
     private favoriteGameModel: Model<FavoriteGameDocument>,
-
   ) {}
 
+  async getCountryById(id: string): Promise<Country> {
+    return await this.countryModel.findOne({ _id: id }).populate('flag');
+  }
+
   async getCountries(): Promise<Country[]> {
-    return await this.countryModel.find();
+    return await this.countryModel.find().populate('flag');
+  }
+
+  async getLeagueById(id: string): Promise<League[]> {
+    return await this.leagueModel.find().populate('country').populate('sport');
   }
 
   async getLeagues(): Promise<League[]> {
     return await this.leagueModel.find().populate('country').populate('sport');
-  }
-
-  async getTeams(): Promise<Team[]> {
-    return await this.teamModel.find();
-  }
-
-  async getLogo(id: string): Promise<Logo> {
-    return await this.logoModel.findOne({ _id: id });
-  }
-
-
-  async getFlag(id: string): Promise<Flag> {
-    return await this.flagModel.findOne({ _id: id });
   }
 
   async getLeaguesByCountry(countryName: string): Promise<League[]> {
@@ -72,6 +64,13 @@ export class FootballService {
     return List;
   }
 
+  async getTeamById(id: string): Promise<Team> {
+    return await this.teamModel
+      .findOne({ _id: id })
+      .populate('country')
+      .populate('logo');
+  }
+
   async getTeamsByCountry(countryName: string): Promise<Team[]> {
     const country = await this.countryModel.findOne({ name: countryName });
 
@@ -80,6 +79,18 @@ export class FootballService {
     console.log(teams);
 
     return teams;
+  }
+
+  async getTeams(): Promise<Team[]> {
+    return await this.teamModel.find();
+  }
+
+  async getLogo(id: string): Promise<Logo> {
+    return await this.logoModel.findOne({ _id: id });
+  }
+
+  async getFlag(id: string): Promise<Flag> {
+    return await this.flagModel.findOne({ _id: id });
   }
 
   async getGamesByLeague(
@@ -98,21 +109,4 @@ export class FootballService {
       .populate('team1')
       .populate('team2');
   }
-
-  // No favorites Games for now
-  // async getFavoriteGames(user: User): Promise<Game[]> {
-  //   let List = await this.favoriteGameModel.find({ user: user });
-  //   let favoriteGames = [];
-
-  //   for (let index in List) {
-  //     let game = await this.gameModel
-  //       .findOne({ game: List[index] })
-  //       .populate('game');
-
-  //     favoriteGames.push(game);
-  //   }
-
-  //   return favoriteGames;
-  // }
-
 }

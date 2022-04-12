@@ -19,9 +19,7 @@ import {
     MongooseModule.forFeature([{ name: League.name, schema: LeagueSchema }]),
     MongooseModule.forFeature([{ name: Team.name, schema: TeamSchema }]),
     MongooseModule.forFeature([{ name: Logo.name, schema: Logoschema }]),
-
     MongooseModule.forFeature([{ name: Flag.name, schema: Flagschema }]),
-
     MongooseModule.forFeature([{ name: Game.name, schema: GameSchema }]),
     MongooseModule.forFeature([
       { name: FavoriteGame.name, schema: FavoriteGameSchema },

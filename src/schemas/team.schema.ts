@@ -1,3 +1,4 @@
+import { Country } from './country.schema';
 import { League } from './league.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
@@ -15,11 +16,9 @@ export class Team {
   })
   name: string;
 
-  @Prop({
-    required: true,
-    trim: true,
-  })
-  country: string;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Country.name })
+  @Type(() => Country)
+  country: Country;
 
   @Prop({
     trim: true,

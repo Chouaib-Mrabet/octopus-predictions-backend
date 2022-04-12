@@ -36,6 +36,7 @@ export class FootballService {
     return await this.leagueModel.find({ country: country._id });
   }
 
+  // !!!!!
   async getLeaguesByCountries(): Promise<any[]> {
     const countries = await this.getCountries();
 
@@ -55,8 +56,9 @@ export class FootballService {
   async getTeamsByCountry(countryName: string): Promise<Team[]> {
     const country = await this.countryModel.findOne({ name: countryName });
 
-    console.log(country._id);
     const teams = await this.teamModel.find({ country: country._id });
+
+    console.log(teams);
 
     return teams;
   }
@@ -78,15 +80,15 @@ export class FootballService {
       .populate('team2');
   }
 
-  async getFavoriteGames(user: User): Promise<Game[]> {
-    let List = await this.favoriteGameModel.find({ user: user });
-    let favoriteGames = [];
+  // async getFavoriteGames(user: User): Promise<Game[]> {
+  //   let List = await this.favoriteGameModel.find({ user: user });
+  //   let favoriteGames = [];
 
-    for (let fv in List) {
-      let game = await this.gameModel.findOne({ game: fv }).populate('game');
+  //   for (let fv in List) {
+  //     let game = await this.gameModel.findOne({ game: fv }).populate('game');
 
-      favoriteGames.push(game);
-    }
-    return favoriteGames;
-  }
+  //     favoriteGames.push(game);
+  //   }
+  //   return favoriteGames;
+  // }
 }

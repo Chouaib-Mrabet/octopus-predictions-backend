@@ -78,11 +78,11 @@ export class FootballController {
   // Favorites :
   // List of my favorite games  :
   // TODO : Add Filters && Pagination
-  @Get('/favorite/games')
-  @UseGuards(JwtAuthGuard)
-  async getFavoriteGames(@Userd() userd): Promise<Game[]> {
-    let favoriteGames = await this.footballService.getFavoriteGames(userd);
+  // @Get('/favorite/games')
+  // @UseGuards(JwtAuthGuard)
+  // async getFavoriteGames(@Userd() userd): Promise<Game[]> {
+  //   let favoriteGames = await this.footballService.getFavoriteGames(userd);
 
-    return favoriteGames;
-  }
+  //   return favoriteGames;
+  // }
 }

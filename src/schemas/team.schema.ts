@@ -1,8 +1,9 @@
+import { Country } from './country.schema';
+import { League } from './league.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Type } from 'class-transformer';
 import mongoose from 'mongoose';
 import { Document, Types } from 'mongoose';
-import { Country } from './country.schema';
 import { Logo } from './logo.schema';
 import { Sport } from './sport.schema';
 
@@ -40,6 +41,10 @@ export class Team {
     unique: true,
   })
   flashscoreId: string;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: League.name })
+  @Type(() => League)
+  league: League;
 
   @Prop({ default: Date.now })
   createdAt!: Date;

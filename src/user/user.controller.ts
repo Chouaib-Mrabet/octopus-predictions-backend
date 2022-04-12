@@ -1,14 +1,5 @@
 import { UserRoleEnum } from './../enums/user-role.enum';
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Req,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Userd } from 'src/decorators/userd.decorator';
@@ -16,8 +7,10 @@ import { UpdateUserDto } from 'src/dto/update-user.dto';
 import { User } from 'src/schemas/user.schema';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesGuard } from 'src/guards/roles.guard';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('user')
+@ApiTags('user')
 export class UserController {
   constructor(private userService: UserService) {}
 
@@ -37,3 +30,4 @@ export class UserController {
     return await this.userService.updateUser(userd._id, updateUserDto);
   }
 }
+

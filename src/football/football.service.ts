@@ -36,19 +36,19 @@ export class FootballService {
     return await this.leagueModel.find({ country: country._id });
   }
 
-  // !!!!!
   async getLeaguesByCountries(): Promise<any[]> {
     const countries = await this.getCountries();
 
     let List = [];
 
-    countries.forEach(async (ctr) => {
-      const item = {
-        country: ctr,
-        leagues: await this.getLeaguesByCountry(ctr.name),
+    for (let i = 0; i < countries.length; i++) {
+      let item = {
+        country: countries[i],
+        leagues: await this.getLeaguesByCountry(countries[i].name),
       };
       List.push(item);
-    });
+      console.log(item);
+    }
 
     return List;
   }

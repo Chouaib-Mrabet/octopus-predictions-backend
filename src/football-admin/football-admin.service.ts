@@ -7,6 +7,7 @@ import { Country, CountryDocument } from 'src/schemas/country.schema';
 import { Sport, SportDocument } from 'src/schemas/sport.schema';
 import { Team, TeamDocument } from 'src/schemas/team.schema';
 import { Logo, LogoDocument } from 'src/schemas/logo.schema';
+import { Flag, FlagDocument } from 'src/schemas/flag.schema';
 const axios = require('axios').default;
 
 @Injectable()
@@ -17,6 +18,7 @@ export class FootballAdminService {
     @InjectModel(Sport.name) private sportModel: Model<SportDocument>,
     @InjectModel(Team.name) private teamModel: Model<TeamDocument>,
     @InjectModel(Logo.name) private logoModel: Model<LogoDocument>,
+    @InjectModel(Flag.name) private flagModel: Model<FlagDocument>,
   ) {}
 
   async scrapeCountries(): Promise<string[]> {
@@ -56,13 +58,53 @@ export class FootballAdminService {
     });
     if (existingCountry) return existingCountry;
 
-    let newCountry = new this.countryModel({ name: countryName });
+    let flagFlashscoreId = await this.scrapeCountryFlag(countryName);
+    let flag = await this.flagModel.findOne({
+      flashscoreId: flagFlashscoreId,
+    });
+    if (flag == null) {
+      flag = new this.flagModel({ flashscoreId: flagFlashscoreId });
+      let flagUrl = `https://www.flashscore.com/res/_fs/build/${flagFlashscoreId}.png`;
+      flag.data = Buffer.from(
+        (await axios.get(flagUrl, { responseType: 'arraybuffer' })).data,
+        'utf-8',
+      );
+      await flag.save();
+    }
+
+    let newCountry = new this.countryModel({ name: countryName, flag: flag });
     try {
       await newCountry.save();
     } catch (e) {
       console.log('error', countryName);
     }
     return newCountry;
+  }
+  async scrapeCountryFlag(countryName: string) {
+    const browser = await puppeteer.launch({
+      executablePath: '/usr/bin/google-chrome',
+      headless: true,
+    });
+
+    const page = await browser.newPage();
+
+    let url = `https://www.flashscore.com/football/${countryName}/`;
+
+    await page.goto(url, {
+      waitUntil: 'load',
+      timeout: 0,
+    });
+
+    let countryFlagId = await page.$eval('.leftMenu__flag.flag', (flag) => {
+      let url = getComputedStyle(flag)
+        .getPropertyValue('background-image')
+        .slice(5, -6)
+        .split('/')[6];
+      return url;
+    });
+
+    await browser.close();
+    return countryFlagId;
   }
 
   async getCountries(): Promise<Country[]> {
@@ -198,7 +240,7 @@ export class FootballAdminService {
 
       if (team) return team;
 
-      let country = await this.saveCountry(countryName)
+      let country = await this.saveCountry(countryName);
       let logo = await this.logoModel.findOne({
         flashscoreId: logoFlashscoreId,
       });

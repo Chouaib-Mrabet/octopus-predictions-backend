@@ -1,3 +1,4 @@
+import { Game, GameSchema } from './../schemas/game.schema';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Country, CountrySchema } from 'src/schemas/country.schema';
@@ -6,6 +7,10 @@ import { Logo, Logoschema } from 'src/schemas/logo.schema';
 import { Team, TeamSchema } from 'src/schemas/team.schema';
 import { FootballController } from './football.controller';
 import { FootballService } from './football.service';
+import {
+  FavoriteGame,
+  FavoriteGameSchema,
+} from 'src/schemas/favorite-game.schema';
 
 @Module({
   imports: [
@@ -13,6 +18,10 @@ import { FootballService } from './football.service';
     MongooseModule.forFeature([{ name: League.name, schema: LeagueSchema }]),
     MongooseModule.forFeature([{ name: Team.name, schema: TeamSchema }]),
     MongooseModule.forFeature([{ name: Logo.name, schema: Logoschema }]),
+    MongooseModule.forFeature([{ name: Game.name, schema: GameSchema }]),
+    MongooseModule.forFeature([
+      { name: FavoriteGame.name, schema: FavoriteGameSchema },
+    ]),
   ],
   controllers: [FootballController],
   providers: [FootballService],

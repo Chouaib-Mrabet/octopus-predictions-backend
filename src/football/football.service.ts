@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { League, LeagueDocument } from 'src/schemas/league.schema';
 import { Team, TeamDocument } from 'src/schemas/team.schema';
 import { Logo, LogoDocument } from 'src/schemas/logo.schema';
+import { Flag, FlagDocument } from 'src/schemas/flag.schema';
 
 @Injectable()
 export class FootballService {
@@ -13,6 +14,7 @@ export class FootballService {
     @InjectModel(League.name) private leagueModel: Model<LeagueDocument>,
     @InjectModel(Team.name) private teamModel: Model<TeamDocument>,
     @InjectModel(Logo.name) private logoModel: Model<LogoDocument>,
+    @InjectModel(Flag.name) private flagModel: Model<FlagDocument>,
   ) {}
 
   async getCountries(): Promise<Country[]> {
@@ -29,5 +31,9 @@ export class FootballService {
 
   async getLogo(id: string): Promise<Logo> {
     return await this.logoModel.findOne({ _id: id });
+  }
+
+  async getFlag(id: string): Promise<Flag> {
+    return await this.flagModel.findOne({ _id: id });
   }
 }

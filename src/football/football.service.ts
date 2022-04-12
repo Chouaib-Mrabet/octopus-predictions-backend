@@ -47,7 +47,6 @@ export class FootballService {
         leagues: await this.getLeaguesByCountry(countries[i].name),
       };
       List.push(item);
-      console.log(item);
     }
 
     return List;
@@ -80,15 +79,19 @@ export class FootballService {
       .populate('team2');
   }
 
+  // No favorites Games for now
   // async getFavoriteGames(user: User): Promise<Game[]> {
   //   let List = await this.favoriteGameModel.find({ user: user });
   //   let favoriteGames = [];
 
-  //   for (let fv in List) {
-  //     let game = await this.gameModel.findOne({ game: fv }).populate('game');
+  //   for (let index in List) {
+  //     let game = await this.gameModel
+  //       .findOne({ game: List[index] })
+  //       .populate('game');
 
   //     favoriteGames.push(game);
   //   }
+
   //   return favoriteGames;
   // }
 }

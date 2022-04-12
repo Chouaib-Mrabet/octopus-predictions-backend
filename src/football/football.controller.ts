@@ -1,12 +1,9 @@
-import { Controller, Get, Header, Param, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Header, Param, Res } from '@nestjs/common';
 import { Team } from './../schemas/team.schema';
 import { ApiTags } from '@nestjs/swagger';
 import { Country } from 'src/schemas/country.schema';
 import { League } from 'src/schemas/league.schema';
 import { FootballService } from './football.service';
-import { Game } from 'src/schemas/game.schema';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { Userd } from 'src/decorators/userd.decorator';
 
 @Controller('football')
 @ApiTags('football')
@@ -20,6 +17,13 @@ export class FootballController {
     return leagues;
   }
 
+  // Get League by id :
+  @Get('league/:id')
+  async getLeague(@Param('id') id: string): Promise<League[]> {
+    let leagues = await this.footballService.getLeagueById(id);
+    return leagues;
+  }
+
   // List of All teams :
   @Get('teams')
   async getTeams(): Promise<Team[]> {
@@ -27,10 +31,23 @@ export class FootballController {
     return teams;
   }
 
+  // Get Team by id :
+  @Get('team/:id')
+  async getTeam(@Param('id') id: string): Promise<Team> {
+    let team = await this.footballService.getTeamById(id);
+    return team;
+  }
+
   // List of All countries :
   @Get('countries')
   async getCountries(): Promise<Country[]> {
     return this.footballService.getCountries();
+  }
+
+  // Get Country by id :
+  @Get('country/:id')
+  async getCountryById(@Param('id') id: string): Promise<Country> {
+    return this.footballService.getCountryById(id);
   }
 
   // List of Countries with thier leagues :
@@ -60,7 +77,7 @@ export class FootballController {
     let logo = await this.footballService.getLogo(id);
     res.send(logo.data);
   }
-
+  
   @Get('getFlag/:id')
   @Header('content-type', 'image/png')
   async getFlag(@Res() res, @Param('id') id: string) {
@@ -95,4 +112,6 @@ export class FootballController {
 
     return gamesByLeague;
   }
+
+
 }

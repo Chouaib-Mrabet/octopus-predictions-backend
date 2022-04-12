@@ -35,7 +35,7 @@ export class FootballService {
   }
 
   async getLeagueById(id: string): Promise<League[]> {
-    return await this.leagueModel.find().populate('country').populate('sport');
+    return await this.leagueModel.findOne({_id: id}).populate('country').populate('sport');
   }
 
   async getLeagues(): Promise<League[]> {
@@ -67,8 +67,7 @@ export class FootballService {
   async getTeamById(id: string): Promise<Team> {
     return await this.teamModel
       .findOne({ _id: id })
-      .populate('country')
-      .populate('logo');
+      .populate('country');
   }
 
   async getTeamsByCountry(countryName: string): Promise<Team[]> {

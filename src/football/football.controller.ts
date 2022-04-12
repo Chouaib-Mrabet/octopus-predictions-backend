@@ -10,6 +10,8 @@ import { FootballService } from './football.service';
 export class FootballController {
   constructor(private readonly footballService: FootballService) {}
 
+  // Todo : pagination mail prefix
+
   // List of All leagues :
   @Get('leagues')
   async getLeagues(): Promise<League[]> {
@@ -59,12 +61,12 @@ export class FootballController {
   }
 
   // Get Leagues by country :
-  @Get('/:country/leagues')
+  @Get('/:countryId/leagues')
   async getLeaguesByCountry(
-    @Param('country') countryName: string,
+    @Param('countryId') countryId: string,
   ): Promise<League[]> {
     let leaguesByCountry = await this.footballService.getLeaguesByCountry(
-      countryName,
+      countryId,
     );
 
     return leaguesByCountry;
@@ -77,7 +79,8 @@ export class FootballController {
     let logo = await this.footballService.getLogo(id);
     res.send(logo.data);
   }
-  
+
+  // Get Flag :
   @Get('getFlag/:id')
   @Header('content-type', 'image/png')
   async getFlag(@Res() res, @Param('id') id: string) {
@@ -86,13 +89,11 @@ export class FootballController {
   }
 
   // List of Teams per country :
-  @Get('/:country/teams')
+  @Get('/:countryId/teams')
   async getTeamsByCountry(
-    @Param('country') countryName: string,
+    @Param('countryId') countryId: string,
   ): Promise<Team[]> {
-    let teamsByLeague = await this.footballService.getTeamsByCountry(
-      countryName,
-    );
+    let teamsByLeague = await this.footballService.getTeamsByCountry(countryId);
 
     return teamsByLeague;
   }
@@ -100,18 +101,12 @@ export class FootballController {
   // Games :
   // List of games per league :
   // TODO : Add Filters && Pagination
-  @Get('/:country/:league/games')
-  async getGamesByLeague(
-    @Param('country') countryName: string,
-    @Param('league') leagueName: string,
+  @Get('/:leagueId/games')
+  async getGamesByLeagueId(
+    @Param('leagueId') leagueId: string,
   ): Promise<Team[]> {
-    let gamesByLeague = await this.footballService.getGamesByLeague(
-      countryName,
-      leagueName,
-    );
+    let gamesByLeague = await this.footballService.getGamesByLeague(leagueId);
 
     return gamesByLeague;
   }
-
-
 }

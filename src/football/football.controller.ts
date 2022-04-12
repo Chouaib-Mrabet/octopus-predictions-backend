@@ -13,12 +13,6 @@ import { Userd } from 'src/decorators/userd.decorator';
 export class FootballController {
   constructor(private readonly footballService: FootballService) {}
 
-  // List of All countries :
-  @Get('countries')
-  async getCountries(): Promise<Country[]> {
-    return this.footballService.getCountries();
-  }
-
   // List of All leagues :
   @Get('leagues')
   async getLeagues(): Promise<League[]> {
@@ -26,12 +20,40 @@ export class FootballController {
     return leagues;
   }
 
+  // List of All teams :
   @Get('teams')
   async getTeams(): Promise<Team[]> {
     let teams = await this.footballService.getTeams();
     return teams;
   }
 
+  // List of All countries :
+  @Get('countries')
+  async getCountries(): Promise<Country[]> {
+    return this.footballService.getCountries();
+  }
+
+  // List of Countries with thier leagues :
+  @Get('countriesleagues')
+  async getLeaguesByCountries(): Promise<League[]> {
+    let LeaguesByCountries = await this.footballService.getLeaguesByCountries();
+
+    return LeaguesByCountries;
+  }
+
+  // Get Leagues by country :
+  @Get('/:country/leagues')
+  async getLeaguesByCountry(
+    @Param('country') countryName: string,
+  ): Promise<League[]> {
+    let leaguesByCountry = await this.footballService.getLeaguesByCountry(
+      countryName,
+    );
+
+    return leaguesByCountry;
+  }
+
+  // Get Logo by id :
   @Get('getLogo/:id')
   @Header('content-type', 'image/png')
   async getLogo(@Res() res, @Param('id') id: string) {
@@ -66,43 +88,4 @@ export class FootballController {
 
     return gamesByLeague;
   }
-
-  // List of All leagues :
-  @Get('leagues')
-  async getAllLeagues(): Promise<League[]> {
-    let leagues = await this.footballService.getLeagues();
-
-    return leagues;
-  }
-
-  // List of Countries with thier leagues :
-  @Get('countriesleagues')
-  async getLeaguesByCountries(): Promise<League[]> {
-    let LeaguesByCountries = await this.footballService.getLeaguesByCountries();
-
-    return LeaguesByCountries;
-  }
-
-  // Get Leagues by country :
-  @Get('/:country/leagues')
-  async getLeaguesByCountry(
-    @Param('country') countryName: string,
-  ): Promise<League[]> {
-    let leaguesByCountry = await this.footballService.getLeaguesByCountry(
-      countryName,
-    );
-
-    return leaguesByCountry;
-  }
-
-  // Favorites :
-  // List of my favorite games  :
-  // TODO : Add Filters && Pagination
-  // @Get('/favorite/games')
-  // @UseGuards(JwtAuthGuard)
-  // async getFavoriteGames(@Userd() userd): Promise<Game[]> {
-  //   let favoriteGames = await this.footballService.getFavoriteGames(userd);
-
-  //   return favoriteGames;
-  // }
 }

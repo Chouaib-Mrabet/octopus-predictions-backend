@@ -1,3 +1,4 @@
+import { Length } from 'class-validator';
 import {
   FavoriteGame,
   FavoriteGameDocument,
@@ -12,6 +13,7 @@ import { Model } from 'mongoose';
 import { League, LeagueDocument } from 'src/schemas/league.schema';
 import { Logo, LogoDocument } from 'src/schemas/logo.schema';
 import { Flag, FlagDocument } from 'src/schemas/flag.schema';
+import { count } from 'console';
 
 @Injectable()
 export class FootballService {
@@ -35,15 +37,18 @@ export class FootballService {
   }
 
   async getLeagueById(id: string): Promise<League[]> {
-    return await this.leagueModel.findOne({_id: id}).populate('country').populate('sport');
+    return await this.leagueModel
+      .findOne({ _id: id })
+      .populate('country')
+      .populate('sport');
   }
 
   async getLeagues(): Promise<League[]> {
     return await this.leagueModel.find().populate('country').populate('sport');
   }
 
-  async getLeaguesByCountry(countryName: string): Promise<League[]> {
-    const country = await this.countryModel.findOne({ name: countryName });
+  async getLeaguesByCountry(countryId: string): Promise<League[]> {
+    const country = await this.countryModel.findOne({ _id: countryId });
 
     return await this.leagueModel.find({ country: country._id });
   }
@@ -67,15 +72,12 @@ export class FootballService {
   async getTeamById(id: string): Promise<Team> {
     return await this.teamModel
       .findOne({ _id: id })
-      .populate('country');
+      .populate('country')
+      .populate('sport');
   }
 
-  async getTeamsByCountry(countryName: string): Promise<Team[]> {
-    const country = await this.countryModel.findOne({ name: countryName });
-
-    const teams = await this.teamModel.find({ country: country._id });
-
-    console.log(teams);
+  async getTeamsByCountry(countryId: string): Promise<Team[]> {
+    const teams = await this.teamModel.find({ country: countryId });
 
     return teams;
   }
@@ -92,20 +94,65 @@ export class FootballService {
     return await this.flagModel.findOne({ _id: id });
   }
 
-  async getGamesByLeague(
-    countryName: string,
-    leagueName: string,
-  ): Promise<any[]> {
-    const country = await this.countryModel.findOne({ name: countryName });
-
-    const league = await this.leagueModel.find({
-      name: leagueName,
-      country: country._id,
-    });
-
+  async getGamesByLeague(leagueId: string): Promise<any[]> {
     return await this.gameModel
-      .find({ league: league })
+      .find({ league: leagueId })
       .populate('team1')
       .populate('team2');
+  }
+
+  async getGames(documentsToSkip = 0, limitOfDocuments?: number): Promise<any> {
+    if (limitOfDocuments) {
+      const findQuery = this.gameModel
+        .find()
+        .skip(documentsToSkip)
+        .populate('team1')
+        .populate('team2')
+        .limit(limitOfDocuments);
+
+      const data = await findQuery;
+      const totalItems = await this.gameModel.count();
+      const itemCount = data.length;
+
+      return { data, totalItems, itemCount };
+    } else {
+      const findQuery = this.gameModel
+        .find()
+        .skip(documentsToSkip)
+        .populate('team1')
+        .populate('team2');
+
+      const data = await findQuery;
+      const totalItems = await this.gameModel.count();
+      const itemCount = data.length;
+
+      return { data, totalItems, itemCount };
+    }
+  }
+
+  async testpagination(
+    documentsToSkip = 0,
+    limitOfDocuments?: number,
+  ): Promise<any> {
+    if (limitOfDocuments) {
+      const findQuery = this.teamModel
+        .find()
+        .skip(documentsToSkip)
+        .limit(limitOfDocuments);
+
+      const data = await findQuery;
+      const totalItems = await this.teamModel.count();
+      const itemCount = data.length;
+
+      return { data, totalItems, itemCount };
+    } else {
+      const findQuery = this.teamModel.find().skip(documentsToSkip);
+
+      const data = await findQuery;
+      const totalItems = await this.teamModel.count();
+      const itemCount = data.length;
+
+      return { data, itemCount, totalItems };
+    }
   }
 }

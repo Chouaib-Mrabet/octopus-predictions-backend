@@ -1,3 +1,4 @@
+import { Length } from 'class-validator';
 import {
   FavoriteGame,
   FavoriteGameDocument,
@@ -69,7 +70,10 @@ export class FootballService {
   }
 
   async getTeamById(id: string): Promise<Team> {
-    return await this.teamModel.findOne({ _id: id }).populate('country');
+    return await this.teamModel
+      .findOne({ _id: id })
+      .populate('country')
+      .populate('sport');
   }
 
   async getTeamsByCountry(countryId: string): Promise<Team[]> {
@@ -95,5 +99,60 @@ export class FootballService {
       .find({ league: leagueId })
       .populate('team1')
       .populate('team2');
+  }
+
+  async getGames(documentsToSkip = 0, limitOfDocuments?: number): Promise<any> {
+    if (limitOfDocuments) {
+      const findQuery = this.gameModel
+        .find()
+        .skip(documentsToSkip)
+        .populate('team1')
+        .populate('team2')
+        .limit(limitOfDocuments);
+
+      const data = await findQuery;
+      const totalItems = await this.gameModel.count();
+      const itemCount = data.length;
+
+      return { data, totalItems, itemCount };
+    } else {
+      const findQuery = this.gameModel
+        .find()
+        .skip(documentsToSkip)
+        .populate('team1')
+        .populate('team2');
+
+      const data = await findQuery;
+      const totalItems = await this.gameModel.count();
+      const itemCount = data.length;
+
+      return { data, totalItems, itemCount };
+    }
+  }
+
+  async testpagination(
+    documentsToSkip = 0,
+    limitOfDocuments?: number,
+  ): Promise<any> {
+    if (limitOfDocuments) {
+      const findQuery = this.teamModel
+        .find()
+        .skip(documentsToSkip)
+        .limit(limitOfDocuments);
+
+      const data = await findQuery;
+      const totalItems = await this.teamModel.count();
+      const itemCount = data.length;
+
+      return { data, totalItems, itemCount };
+    } else {
+      const findQuery = this.teamModel.find().skip(documentsToSkip);
+
+      const data = await findQuery;
+      const totalItems = await this.teamModel.count();
+      const itemCount = data.length;
+
+      return { data, itemCount, totalItems };
+    }
   }
 }

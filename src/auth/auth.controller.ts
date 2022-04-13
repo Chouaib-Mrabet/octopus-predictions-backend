@@ -6,6 +6,7 @@ import {
   UseGuards,
   ValidationPipe,
   Request,
+  Param,
 } from '@nestjs/common';
 import ConfirmEmailDto from 'src/dto/confirm-email.dto';
 import { LoginDto } from 'src/dto/login.dto';
@@ -36,9 +37,11 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  @Post('confirm')
-  async confirm(@Body() confirmEmailDto: ConfirmEmailDto) {
+  @Get('confirm/:token')
+  async confirm(@Param() token: string) {
     console.log('confirm');
+    let confirmEmailDto: ConfirmEmailDto = { token: token };
+
     return this.authService.confirmEmail(confirmEmailDto);
   }
 

@@ -1,3 +1,5 @@
+import { MailModule } from './mail/mail.module';
+import { MailService } from './mail/mail.service';
 import { UserModule } from './user/user.module';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
@@ -13,6 +15,7 @@ import { SportsModule } from './sports/sports.module';
 
 @Module({
   imports: [
+    MailModule,
     ConfigModule.forRoot({ isGlobal: true }),
     UserModule,
     MongooseModule.forRoot(

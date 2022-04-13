@@ -1,3 +1,4 @@
+import { UserService } from './../user/user.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -6,12 +7,17 @@ import { User, UserDocument } from 'src/schemas/user.schema';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from 'src/dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { MailService } from 'src/mail/mail.service';
+import ConfirmEmailDto from 'src/dto/confirm-email.dto';
+import { AuthTokenStrategy } from './auth-token-strategy.interface';
+import { ConfirmationTokenStrategy } from './confirmation-token-strategy';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
   hello() {
@@ -36,10 +42,12 @@ export class AuthService {
       hashedPassword: hashedPassword,
     });
 
-    //console.log(newUser);
-
     await newUser.save();
-    return this.generateToken(newUser);
+    let token = this.generateToken(newUser);
+
+    this.mailService.sendUserConfirmation(newUser, token.accessToken);
+
+    return token;
   }
 
   async login(loginDto: LoginDto): Promise<{ accessToken: string }> {
@@ -62,5 +70,43 @@ export class AuthService {
     return {
       accessToken: this.jwtService.sign(payload),
     };
+  }
+
+  async confirmEmail(confirmEmailDto: ConfirmEmailDto): Promise<User> {
+    const email = await this.verifyToken(
+      confirmEmailDto.token,
+      new ConfirmationTokenStrategy(),
+    );
+    const user = await this.userModel.findOne({ email: email });
+
+    if (user.verified) {
+      throw new BadRequestException('USER_ALREADY_CONFIRMED_ERROR_MESSAGE');
+    }
+
+    (await user).verified = true;
+    (await user).save();
+
+    return user;
+  }
+
+  public async verifyToken(
+    token: string,
+    authTokenStrategy: AuthTokenStrategy,
+  ): Promise<string> {
+    try {
+      const payload = await this.jwtService.verify(token, {
+        secret: authTokenStrategy.getSecret(),
+      });
+
+      if (typeof payload === 'object' && 'email' in payload) {
+        return payload.email;
+      }
+      throw new BadRequestException();
+    } catch (error) {
+      if (error?.name === 'TokenExpiredError') {
+        throw new BadRequestException('EXPIRED_TOKEN_ERROR');
+      }
+      throw new BadRequestException('BAD_TOKEN_ERROR');
+    }
   }
 }

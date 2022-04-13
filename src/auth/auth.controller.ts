@@ -7,6 +7,7 @@ import {
   ValidationPipe,
   Request,
 } from '@nestjs/common';
+import ConfirmEmailDto from 'src/dto/confirm-email.dto';
 import { LoginDto } from 'src/dto/login.dto';
 import { SignUpDto } from 'src/dto/sign-up.dto';
 import { AuthService } from './auth.service';
@@ -33,6 +34,12 @@ export class AuthController {
     @Body(ValidationPipe) loginDto: LoginDto,
   ): Promise<{ accessToken: string }> {
     return this.authService.login(loginDto);
+  }
+
+  @Post('confirm')
+  async confirm(@Body() confirmEmailDto: ConfirmEmailDto) {
+    console.log('confirm');
+    return this.authService.confirmEmail(confirmEmailDto);
   }
 
   @UseGuards(JwtAuthGuard)

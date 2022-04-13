@@ -353,11 +353,7 @@ export class FootballAdminService {
     winnerName: string,
   ): Promise<Season> {
     let league = await this.leagueModel.findOne({ _id: leagueId });
-    //to do save winner team if it doesn't exist
-    let winner = await this.teamModel.findOne({
-      flashscoreId: winnerFlashscoreId,
-      name: winnerName,
-    });
+    let winner = await this.saveTeam(winnerName, winnerFlashscoreId);
     let existingSeason = await this.seasonModel.findOne({
       name: seasonName,
       league: league,

@@ -172,8 +172,6 @@ export class FootballAdminService {
     {
       teamName: string;
       teamFlashscoreId: string;
-      countryName: string;
-      logoFlashscoreId: string;
     }[]
   > {
     const browser = await puppeteer.launch({
@@ -194,15 +192,31 @@ export class FootballAdminService {
         return teamsDomElements.map((teamDomElement) => ({
           teamName: teamDomElement.getAttribute('href').split('/')[2],
           teamFlashscoreId: teamDomElement.getAttribute('href').split('/')[3],
-          countryName: null,
-          logoFlashscoreId: null,
         }));
       },
     );
 
-    for (let i = 0; i < teamsInfo.length; i++) {
+    await browser.close();
+
+    return teamsInfo;
+  }
+
+  async saveTeam(teamName: string, teamFlashscoreId: string): Promise<Team> {
+    const browser = await puppeteer.launch({
+      executablePath: '/usr/bin/google-chrome',
+    });
+    try {
+      let team = await this.teamModel.findOne({
+        name: teamName,
+        flashscoreId: teamFlashscoreId,
+      });
+
+      if (team) return team;
+
+      const page = await browser.newPage();
+
       await page.goto(
-        `https://www.flashscore.com/team/${teamsInfo[i].teamName}/${teamsInfo[i].teamFlashscoreId}/`,
+        `https://www.flashscore.com/team/${teamName}/${teamFlashscoreId}/`,
         {
           waitUntil: 'load',
           timeout: 0,
@@ -214,34 +228,11 @@ export class FootballAdminService {
         (elements) => elements[1].getAttribute('href').split('/')[2],
       );
 
-      let logoId = await page.$eval(
+      let logoFlashscoreId = await page.$eval(
         '.heading__logo',
         (element: HTMLElement) =>
           element.style.backgroundImage.slice(5, -6).split('/')[4],
       );
-
-      teamsInfo[i].countryName = countryName;
-      teamsInfo[i].logoFlashscoreId = logoId;
-    }
-
-    await browser.close();
-
-    return teamsInfo;
-  }
-
-  async saveTeam(
-    teamName: string,
-    teamFlashscoreId: string,
-    logoFlashscoreId: string,
-    countryName: string,
-  ): Promise<Team> {
-    try {
-      let team = await this.teamModel.findOne({
-        name: teamName,
-        flashscoreId: teamFlashscoreId,
-      });
-
-      if (team) return team;
 
       let country = await this.saveCountry(countryName);
       let logo = await this.logoModel.findOne({
@@ -256,6 +247,7 @@ export class FootballAdminService {
         );
         await logo.save();
       }
+
       let football = await this.sportModel.findOne({ name: 'football' });
       team = new this.teamModel({
         name: teamName,
@@ -266,9 +258,13 @@ export class FootballAdminService {
       });
 
       team.save();
+
+      await browser.close();
       return team;
     } catch (error) {
       console.log(error, teamName, teamFlashscoreId);
+
+      await browser.close();
     }
   }
 

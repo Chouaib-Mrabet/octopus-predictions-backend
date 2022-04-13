@@ -27,7 +27,7 @@ export class FootballAdminController {
     let countries = await this.footballAdminService.getCountries();
     let leagues = [];
 
-    for (let i = 0; i < countries.length; i++) {
+    for (let i = 0; i < 1; i++) {
       let countryLeaguesNames = await this.footballAdminService.scrapeLeagues(
         countries[i],
       );
@@ -48,7 +48,7 @@ export class FootballAdminController {
   @Get('scrapeTeams')
   async scrapeTeams(): Promise<any> {
     let leagues = await this.footballAdminService.getLeagues();
-    for (let i = 0; i < leagues.length; i++) {
+    for (let i = 0; i < 1; i++) {
       console.log(i + ' league: ' + leagues[i].name);
       let teamsInfo = await this.footballAdminService.scrapeTeams(leagues[i]);
 
@@ -56,8 +56,6 @@ export class FootballAdminController {
         let team = await this.footballAdminService.saveTeam(
           teamsInfo[i].teamName,
           teamsInfo[i].teamFlashscoreId,
-          teamsInfo[i].logoFlashscoreId,
-          teamsInfo[i].countryName,
         );
         console.log(team.name);
       }
@@ -71,7 +69,7 @@ export class FootballAdminController {
     let finishedSeasonsInfo =
       await this.footballAdminService.scrapeFinishedSeasons(leagueId);
 
-    let finishedSeasons: Season[]=[];
+    let finishedSeasons: Season[] = [];
     for (let i = 0; i < finishedSeasonsInfo.length; i++) {
       finishedSeasons.push(
         await this.footballAdminService.saveFinishedSeason(

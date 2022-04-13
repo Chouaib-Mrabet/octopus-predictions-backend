@@ -27,31 +27,36 @@ export class FootballAdminService {
     const browser = await puppeteer.launch({
       executablePath: '/usr/bin/google-chrome',
     });
-    const page = await browser.newPage();
+    try {
+      const page = await browser.newPage();
 
-    let url = 'https://www.flashscore.com/football';
-    await page.goto(url, {
-      waitUntil: 'networkidle2',
-    });
+      let url = 'https://www.flashscore.com/football';
+      await page.goto(url, {
+        waitUntil: 'networkidle2',
+      });
 
-    let countriesNames = [];
-    await page.waitForSelector('[id="onetrust-accept-btn-handler"]');
-    await page.click('[id="onetrust-accept-btn-handler"]');
-    await page.waitForNetworkIdle();
-    await page.waitForSelector('[class="lmc__itemMore"]');
-    await page.click('[class="lmc__itemMore"]');
-    countriesNames = await page.$$eval(
-      'a.lmc__element.lmc__item',
-      (elements) => {
-        return elements.map(
-          (element) => element.getAttribute('href').split('/')[2],
-        );
-      },
-    );
-    // console.table(countriesNames);
+      let countriesNames = [];
+      await page.waitForSelector('[id="onetrust-accept-btn-handler"]');
+      await page.click('[id="onetrust-accept-btn-handler"]');
+      await page.waitForNetworkIdle();
+      await page.waitForSelector('[class="lmc__itemMore"]');
+      await page.click('[class="lmc__itemMore"]');
+      countriesNames = await page.$$eval(
+        'a.lmc__element.lmc__item',
+        (elements) => {
+          return elements.map(
+            (element) => element.getAttribute('href').split('/')[2],
+          );
+        },
+      );
+      // console.table(countriesNames);
 
-    await browser.close();
-    return countriesNames;
+      await browser.close();
+      return countriesNames;
+    } catch (err) {
+      console.log(err);
+      await browser.close();
+    }
   }
 
   async saveCountry(countryName: string): Promise<Country> {
@@ -87,27 +92,31 @@ export class FootballAdminService {
       executablePath: '/usr/bin/google-chrome',
       headless: true,
     });
+    try {
+      const page = await browser.newPage();
 
-    const page = await browser.newPage();
+      let url = `https://www.flashscore.com/football/${countryName}/`;
 
-    let url = `https://www.flashscore.com/football/${countryName}/`;
+      await page.goto(url, {
+        waitUntil: 'load',
+        timeout: 0,
+      });
 
-    await page.goto(url, {
-      waitUntil: 'load',
-      timeout: 0,
-    });
+      let countryFlagId = await page.$eval('.breadcrumb__flag.flag', (flag) => {
+        let url = getComputedStyle(flag)
+          .getPropertyValue('background-image')
+          .slice(5, -6)
+          .split('/')[6];
+        return url;
+      });
 
-    let countryFlagId = await page.$eval('.breadcrumb__flag.flag', (flag) => {
-      let url = getComputedStyle(flag)
-        .getPropertyValue('background-image')
-        .slice(5, -6)
-        .split('/')[6];
-      return url;
-    });
-
-    await browser.close();
-    if (!countryFlagId) countryFlagId = 'world.b7d16db.';
-    return countryFlagId;
+      await browser.close();
+      if (!countryFlagId) countryFlagId = 'world.b7d16db.';
+      return countryFlagId;
+    } catch (err) {
+      console.log(err);
+      await browser.close();
+    }
   }
 
   async getCountries(): Promise<Country[]> {
@@ -126,26 +135,31 @@ export class FootballAdminService {
     const browser = await puppeteer.launch({
       executablePath: '/usr/bin/google-chrome',
     });
-    const page = await browser.newPage();
+    try {
+      const page = await browser.newPage();
 
-    await page.goto(`https://www.flashscore.com/football/${country.name}`, {
-      waitUntil: 'networkidle2',
-      timeout: 0,
-    });
-    let countryLeaguesListElement = await page.$('div.selected-country-list');
+      await page.goto(`https://www.flashscore.com/football/${country.name}`, {
+        waitUntil: 'networkidle2',
+        timeout: 0,
+      });
+      let countryLeaguesListElement = await page.$('div.selected-country-list');
 
-    let leaguesNames = await countryLeaguesListElement.$$eval(
-      'a.leftMenu__href',
-      (leagues) => {
-        return leagues.map(
-          (league) => league.getAttribute('href').split('/')[3],
-        );
-      },
-    );
+      let leaguesNames = await countryLeaguesListElement.$$eval(
+        'a.leftMenu__href',
+        (leagues) => {
+          return leagues.map(
+            (league) => league.getAttribute('href').split('/')[3],
+          );
+        },
+      );
 
-    await browser.close();
+      await browser.close();
 
-    return leaguesNames;
+      return leaguesNames;
+    } catch (err) {
+      console.log(err);
+      await browser.close();
+    }
   }
 
   async saveLeague(leagueName: string, country: Country): Promise<League> {
@@ -177,28 +191,33 @@ export class FootballAdminService {
     const browser = await puppeteer.launch({
       executablePath: '/usr/bin/google-chrome',
     });
-    const page = await browser.newPage();
+    try {
+      const page = await browser.newPage();
 
-    let url = `https://www.flashscore.com/football/${league.country.name}/${league.name}/standings`;
+      let url = `https://www.flashscore.com/football/${league.country.name}/${league.name}/standings`;
 
-    await page.goto(url, {
-      waitUntil: 'load',
-      timeout: 0,
-    });
+      await page.goto(url, {
+        waitUntil: 'load',
+        timeout: 0,
+      });
 
-    let teamsInfo = await page.$$eval(
-      '.tableCellParticipant__image',
-      (teamsDomElements) => {
-        return teamsDomElements.map((teamDomElement) => ({
-          teamName: teamDomElement.getAttribute('href').split('/')[2],
-          teamFlashscoreId: teamDomElement.getAttribute('href').split('/')[3],
-        }));
-      },
-    );
+      let teamsInfo = await page.$$eval(
+        '.tableCellParticipant__image',
+        (teamsDomElements) => {
+          return teamsDomElements.map((teamDomElement) => ({
+            teamName: teamDomElement.getAttribute('href').split('/')[2],
+            teamFlashscoreId: teamDomElement.getAttribute('href').split('/')[3],
+          }));
+        },
+      );
 
-    await browser.close();
+      await browser.close();
 
-    return teamsInfo;
+      return teamsInfo;
+    } catch (err) {
+      console.log(err);
+      await browser.close();
+    }
   }
 
   async saveTeam(teamName: string, teamFlashscoreId: string): Promise<Team> {

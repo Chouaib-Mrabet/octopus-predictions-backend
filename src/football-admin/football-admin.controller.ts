@@ -1,7 +1,8 @@
-import { Controller, Get, Header, Res } from '@nestjs/common';
+import { Controller, Get, Header, Param, Res } from '@nestjs/common';
 import { Country } from 'src/schemas/country.schema';
 import { FootballAdminService } from './football-admin.service';
 import { Response } from 'express';
+import { Season } from 'src/schemas/season.schema';
 
 @Controller('football-admin')
 export class FootballAdminController {
@@ -48,7 +49,7 @@ export class FootballAdminController {
   async scrapeTeams(): Promise<any> {
     let leagues = await this.footballAdminService.getLeagues();
     for (let i = 0; i < leagues.length; i++) {
-      console.log(i+' league: ' + leagues[i].name);
+      console.log(i + ' league: ' + leagues[i].name);
       let teamsInfo = await this.footballAdminService.scrapeTeams(leagues[i]);
 
       for (let i = 0; i < teamsInfo.length; i++) {
@@ -61,5 +62,27 @@ export class FootballAdminController {
         console.log(team.name);
       }
     }
+  }
+
+  @Get('scrapeFinishedSeasons/:leagueId')
+  async scrapeFinishedSeasons(
+    @Param('leagueId') leagueId: string,
+  ): Promise<any> {
+    let finishedSeasonsInfo =
+      await this.footballAdminService.scrapeFinishedSeasons(leagueId);
+
+    let finishedSeasons: Season[]=[];
+    for (let i = 0; i < finishedSeasonsInfo.length; i++) {
+      finishedSeasons.push(
+        await this.footballAdminService.saveFinishedSeason(
+          leagueId,
+          finishedSeasonsInfo[i].seasonName,
+          finishedSeasonsInfo[i].winnerFlashscoreId,
+          finishedSeasonsInfo[i].winnerName,
+        ),
+      );
+    }
+
+    return finishedSeasons;
   }
 }

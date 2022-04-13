@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { League, LeagueDocument } from 'src/schemas/league.schema';
 import { Model } from 'mongoose';
@@ -8,6 +8,7 @@ import { Sport, SportDocument } from 'src/schemas/sport.schema';
 import { Team, TeamDocument } from 'src/schemas/team.schema';
 import { Logo, LogoDocument } from 'src/schemas/logo.schema';
 import { Flag, FlagDocument } from 'src/schemas/flag.schema';
+import { Season, SeasonDocument } from 'src/schemas/season.schema';
 const axios = require('axios').default;
 
 @Injectable()
@@ -19,6 +20,7 @@ export class FootballAdminService {
     @InjectModel(Team.name) private teamModel: Model<TeamDocument>,
     @InjectModel(Logo.name) private logoModel: Model<LogoDocument>,
     @InjectModel(Flag.name) private flagModel: Model<FlagDocument>,
+    @InjectModel(Season.name) private seasonModel: Model<SeasonDocument>,
   ) {}
 
   async scrapeCountries(): Promise<string[]> {
@@ -104,7 +106,7 @@ export class FootballAdminService {
     });
 
     await browser.close();
-    if(!countryFlagId) countryFlagId="world.b7d16db."
+    if (!countryFlagId) countryFlagId = 'world.b7d16db.';
     return countryFlagId;
   }
 
@@ -268,5 +270,96 @@ export class FootballAdminService {
     } catch (error) {
       console.log(error, teamName, teamFlashscoreId);
     }
+  }
+
+  async scrapeFinishedSeasons(
+    leagueId: string,
+  ): Promise<
+    { seasonName: string; winnerFlashscoreId: string; winnerName: string }[]
+  > {
+    let league = await this.leagueModel
+      .findOne({ _id: leagueId })
+      .populate('country');
+    if (!league) throw new BadRequestException("league doesn't exist");
+    const browser = await puppeteer.launch({
+      executablePath: '/usr/bin/google-chrome',
+    });
+    try {
+      const page = await browser.newPage();
+
+      await page.goto(
+        `https://www.flashscore.com/football/${league.country.name}/${league.name}/archive`,
+        {
+          waitUntil: 'networkidle2',
+          timeout: 0,
+        },
+      );
+
+      let finishedSeasons = await page.$$eval('.archive__row', (rows) =>
+        rows
+          .filter(
+            (row) =>
+              row
+                .querySelector('.archive__winner')
+                .querySelector('.archive__text') != null,
+          )
+          .map((row) => ({
+            seasonName: row
+              .querySelector('.archive__season')
+              .querySelector('.archive__text')
+              .getAttribute('href')
+              .split('/')[3],
+            winnerFlashscoreId: row
+              .querySelector('.archive__winner')
+              .querySelector('.archive__text')
+              .getAttribute('href')
+              .split('/')[3],
+
+            winnerName: row
+              .querySelector('.archive__winner')
+              .querySelector('.archive__text')
+              .getAttribute('href')
+              .split('/')[2],
+          })),
+      );
+
+      await browser.close();
+      return finishedSeasons;
+    } catch (err) {
+      console.log(err);
+      await browser.close();
+    }
+  }
+
+  async saveFinishedSeason(
+    leagueId: string,
+    seasonName: string,
+    winnerFlashscoreId: string,
+    winnerName: string,
+  ): Promise<Season> {
+    let league = await this.leagueModel.findOne({ _id: leagueId });
+    //to do save winner team if it doesn't exist
+    let winner = await this.teamModel.findOne({
+      flashscoreId: winnerFlashscoreId,
+      name: winnerName,
+    });
+    let existingSeason = await this.seasonModel.findOne({
+      name: seasonName,
+      league: league,
+    });
+
+    if (existingSeason) return existingSeason;
+
+    let finishedSeason = new this.seasonModel({
+      name: seasonName,
+      league: league,
+      winner: winner,
+    });
+    try {
+      await finishedSeason.save();
+    } catch (error) {
+      console.log(error, finishedSeason);
+    }
+    return finishedSeason;
   }
 }

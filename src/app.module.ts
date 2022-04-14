@@ -15,9 +15,7 @@ import { SportsModule } from './sports/sports.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     UserModule,
-    MongooseModule.forRoot(
-      `mongodb://${process.env.MONGO_ADDRESS_PORT}/${process.env.MONGO_DB}`,
-    ),
+    MongooseModule.forRoot(process.env.MONGO_DB_URL),
     AuthModule,
     FootballModule,
     FootballAdminModule,

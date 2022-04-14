@@ -42,10 +42,6 @@ export class Team {
   })
   flashscoreId: string;
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: League.name })
-  @Type(() => League)
-  league: League;
-
   @Prop({ default: Date.now })
   createdAt!: Date;
 

@@ -3,6 +3,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  process.setMaxListeners(Infinity);
   const app = await NestFactory.create(AppModule);
   const config = new DocumentBuilder()
     .setTitle('PFA')

@@ -13,6 +13,7 @@ export class FootballAdminService {
       this.browser = await puppeteer.launch({
         executablePath: '/usr/bin/google-chrome',
         headless: true,
+        args: ["--disable-gpu", "--window-size=1920,1080", "--no-sandbox"],
       });
     }
   }

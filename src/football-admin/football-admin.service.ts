@@ -130,25 +130,7 @@ export class FootballAdminService {
     }
   }
 
-  async saveLeague(leagueName: string, country: Country): Promise<League> {
-    let football = await this.sportModel.findOne({ name: 'football' });
-    let existingLeague = await this.leagueModel.findOne({
-      name: leagueName,
-      country: country,
-      sport: football,
-    });
-    if (existingLeague) return existingLeague;
 
-    let newLeague = new this.leagueModel({ name: leagueName });
-    newLeague.country = country;
-    newLeague.sport = football;
-    try {
-      await newLeague.save();
-    } catch (error) {
-      console.log(error, newLeague);
-    }
-    return newLeague;
-  }
 
   async scrapeTeams(league: League): Promise<
     {

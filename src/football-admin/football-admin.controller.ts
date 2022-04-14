@@ -34,14 +34,14 @@ export class FootballAdminController {
     let countries = await this.footballAdminRespository.getCountries();
     let leagues = [];
 
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < countries.length; i++) {
       let countryLeaguesNames = await this.footballAdminService.scrapeLeagues(
         countries[i],
       );
       console.log(countryLeaguesNames);
       for (let j = 0; j < countryLeaguesNames.length; j++) {
         leagues.push(
-          await this.footballAdminService.saveLeague(
+          await this.footballAdminRespository.findElseSaveLeague(
             countryLeaguesNames[j],
             countries[i],
           ),

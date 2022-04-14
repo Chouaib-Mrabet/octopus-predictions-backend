@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { League, LeagueDocument } from 'src/schemas/league.schema';
 import { Model } from 'mongoose';
@@ -9,11 +14,14 @@ import { Team, TeamDocument } from 'src/schemas/team.schema';
 import { Logo, LogoDocument } from 'src/schemas/logo.schema';
 import { Flag, FlagDocument } from 'src/schemas/flag.schema';
 import { Season, SeasonDocument } from 'src/schemas/season.schema';
+import { FootballAdminRespository } from './football-admin.repository';
 const axios = require('axios').default;
 
 @Injectable()
 export class FootballAdminService {
   constructor(
+    @Inject(forwardRef(() => FootballAdminRespository))
+    private readonly footballAdminRespository: FootballAdminRespository,
     @InjectModel(League.name) private leagueModel: Model<LeagueDocument>,
     @InjectModel(Country.name) private countryModel: Model<CountryDocument>,
     @InjectModel(Sport.name) private sportModel: Model<SportDocument>,
@@ -59,34 +67,6 @@ export class FootballAdminService {
     }
   }
 
-  async saveCountry(countryName: string): Promise<Country> {
-    let existingCountry = await this.countryModel.findOne({
-      name: countryName,
-    });
-    if (existingCountry) return existingCountry;
-
-    let flagFlashscoreId = await this.scrapeCountryFlag(countryName);
-    let flag = await this.flagModel.findOne({
-      flashscoreId: flagFlashscoreId,
-    });
-    if (flag == null) {
-      flag = new this.flagModel({ flashscoreId: flagFlashscoreId });
-      let flagUrl = `https://www.flashscore.com/res/_fs/build/${flagFlashscoreId}.png`;
-      flag.data = Buffer.from(
-        (await axios.get(flagUrl, { responseType: 'arraybuffer' })).data,
-        'utf-8',
-      );
-      await flag.save();
-    }
-
-    let newCountry = new this.countryModel({ name: countryName, flag: flag });
-    try {
-      await newCountry.save();
-    } catch (e) {
-      console.log('error', countryName);
-    }
-    return newCountry;
-  }
   async scrapeCountryFlag(countryName: string) {
     const browser = await puppeteer.launch({
       executablePath: '/usr/bin/google-chrome',
@@ -253,7 +233,9 @@ export class FootballAdminService {
           element.style.backgroundImage.slice(5, -6).split('/')[4],
       );
 
-      let country = await this.saveCountry(countryName);
+      let country = await this.footballAdminRespository.findElseSaveCountry(
+        countryName,
+      );
       let logo = await this.logoModel.findOne({
         flashscoreId: logoFlashscoreId,
       });

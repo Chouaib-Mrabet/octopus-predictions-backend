@@ -3,10 +3,14 @@ import { Country } from 'src/schemas/country.schema';
 import { FootballAdminService } from './football-admin.service';
 import { Response } from 'express';
 import { Season } from 'src/schemas/season.schema';
+import { FootballAdminRespository } from './football-admin.repository';
 
 @Controller('football-admin')
 export class FootballAdminController {
-  constructor(private readonly footballAdminService: FootballAdminService) {}
+  constructor(
+    private readonly footballAdminService: FootballAdminService,
+    private readonly footballAdminRespository: FootballAdminRespository,
+  ) {}
 
   @Get('scrapeCountries')
   async scrapeCountries(): Promise<Country[]> {
@@ -15,8 +19,11 @@ export class FootballAdminController {
 
     let countries = [];
     for (let i = 0; i < countriesNames.length; i++) {
+      console.log(countriesNames[i]);
       countries.push(
-        await this.footballAdminService.saveCountry(countriesNames[i]),
+        await this.footballAdminRespository.findElseSaveCountry(
+          countriesNames[i],
+        ),
       );
     }
     return countries;

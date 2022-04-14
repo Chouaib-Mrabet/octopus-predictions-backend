@@ -31,7 +31,7 @@ export class FootballAdminController {
 
   @Get('scrapeLeagues')
   async scrapeLeagues(): Promise<any> {
-    let countries = await this.footballAdminService.getCountries();
+    let countries = await this.footballAdminRespository.getCountries();
     let leagues = [];
 
     for (let i = 0; i < 1; i++) {
@@ -54,7 +54,7 @@ export class FootballAdminController {
 
   @Get('scrapeTeams')
   async scrapeTeams(): Promise<any> {
-    let leagues = await this.footballAdminService.getLeagues();
+    let leagues = await this.footballAdminRespository.getLeagues();
     for (let i = 0; i < 1; i++) {
       console.log(i + ' league: ' + leagues[i].name);
       let teamsInfo = await this.footballAdminService.scrapeTeams(leagues[i]);

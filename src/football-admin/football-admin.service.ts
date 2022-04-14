@@ -99,18 +99,6 @@ export class FootballAdminService {
     }
   }
 
-  async getCountries(): Promise<Country[]> {
-    return await this.countryModel.find();
-  }
-
-  async getLeagues(): Promise<League[]> {
-    return await this.leagueModel.find().populate('country');
-  }
-
-  async getTeams(): Promise<Team[]> {
-    return await this.teamModel.find().populate('logo');
-  }
-
   async scrapeLeagues(country: Country): Promise<string[]> {
     const browser = await puppeteer.launch({
       executablePath: '/usr/bin/google-chrome',

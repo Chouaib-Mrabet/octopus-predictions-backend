@@ -4,6 +4,8 @@ import { Country, CountryDocument } from 'src/schemas/country.schema';
 import { Model } from 'mongoose';
 import { FootballAdminService } from './football-admin.service';
 import { Flag, FlagDocument } from 'src/schemas/flag.schema';
+import { League, LeagueDocument } from 'src/schemas/league.schema';
+import { Team, TeamDocument } from 'src/schemas/team.schema';
 const axios = require('axios').default;
 
 @Injectable()
@@ -13,6 +15,8 @@ export class FootballAdminRespository {
     private readonly footballAdminService: FootballAdminService,
     @InjectModel(Country.name) private countryModel: Model<CountryDocument>,
     @InjectModel(Flag.name) private flagModel: Model<FlagDocument>,
+    @InjectModel(League.name) private leagueModel: Model<LeagueDocument>,
+    @InjectModel(Team.name) private teamModel: Model<TeamDocument>,
   ) {}
 
   async findElseSaveCountry(countryName: string): Promise<Country> {
@@ -47,5 +51,17 @@ export class FootballAdminRespository {
       await flag.save();
     }
     return flag;
+  }
+
+  async getCountries(): Promise<Country[]> {
+    return await this.countryModel.find();
+  }
+
+  async getLeagues(): Promise<League[]> {
+    return await this.leagueModel.find().populate('country');
+  }
+
+  async getTeams(): Promise<Team[]> {
+    return await this.teamModel.find().populate('logo');
   }
 }

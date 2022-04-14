@@ -1,7 +1,6 @@
-import { Controller, Get, Header, Param, Res } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { Country } from 'src/schemas/country.schema';
 import { FootballAdminService } from './football-admin.service';
-import { Response } from 'express';
 import { Season } from 'src/schemas/season.schema';
 import { FootballAdminRespository } from './football-admin.repository';
 
@@ -75,7 +74,7 @@ export class FootballAdminController {
 
     let finishedSeasons: Season[] = [];
     for (let i = 0; i < leagues.length; i++) {
-      console.log(leagues[i])
+      console.log(leagues[i]);
       let finishedSeasonsInfo =
         await this.footballAdminService.scrapeFinishedSeasons(leagues[i]);
 

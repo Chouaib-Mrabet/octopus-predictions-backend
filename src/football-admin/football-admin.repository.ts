@@ -14,7 +14,6 @@ const axios = require('axios').default;
 @Injectable()
 export class FootballAdminRespository {
   constructor(
-    @Inject(forwardRef(() => FootballAdminService))
     private readonly footballAdminService: FootballAdminService,
     @InjectModel(Country.name) private countryModel: Model<CountryDocument>,
     @InjectModel(Flag.name) private flagModel: Model<FlagDocument>,

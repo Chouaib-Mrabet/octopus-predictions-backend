@@ -1,35 +1,11 @@
-import {
-  BadRequestException,
-  forwardRef,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { League, LeagueDocument } from 'src/schemas/league.schema';
-import { Model } from 'mongoose';
+import { Injectable } from '@nestjs/common';
+import { League } from 'src/schemas/league.schema';
 import * as puppeteer from 'puppeteer-core';
-import { Country, CountryDocument } from 'src/schemas/country.schema';
-import { Sport, SportDocument } from 'src/schemas/sport.schema';
-import { Team, TeamDocument } from 'src/schemas/team.schema';
-import { Logo, LogoDocument } from 'src/schemas/logo.schema';
-import { Flag, FlagDocument } from 'src/schemas/flag.schema';
-import { Season, SeasonDocument } from 'src/schemas/season.schema';
-import { FootballAdminRespository } from './football-admin.repository';
-const axios = require('axios').default;
+import { Country } from 'src/schemas/country.schema';
 
 @Injectable()
 export class FootballAdminService {
-  constructor(
-    @Inject(forwardRef(() => FootballAdminRespository))
-    private readonly footballAdminRespository: FootballAdminRespository,
-    @InjectModel(League.name) private leagueModel: Model<LeagueDocument>,
-    @InjectModel(Country.name) private countryModel: Model<CountryDocument>,
-    @InjectModel(Sport.name) private sportModel: Model<SportDocument>,
-    @InjectModel(Team.name) private teamModel: Model<TeamDocument>,
-    @InjectModel(Logo.name) private logoModel: Model<LogoDocument>,
-    @InjectModel(Flag.name) private flagModel: Model<FlagDocument>,
-    @InjectModel(Season.name) private seasonModel: Model<SeasonDocument>,
-  ) {}
+  constructor() {}
 
   async scrapeCountries(): Promise<string[]> {
     const browser = await puppeteer.launch({

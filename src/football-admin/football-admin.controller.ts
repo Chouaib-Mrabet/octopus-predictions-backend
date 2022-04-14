@@ -60,7 +60,7 @@ export class FootballAdminController {
       let teamsInfo = await this.footballAdminService.scrapeTeams(leagues[i]);
 
       for (let i = 0; i < teamsInfo.length; i++) {
-        let team = await this.footballAdminService.saveTeam(
+        let team = await this.footballAdminRespository.findElseSaveTeam(
           teamsInfo[i].teamName,
           teamsInfo[i].teamFlashscoreId,
         );

@@ -130,8 +130,6 @@ export class FootballAdminService {
     }
   }
 
-
-
   async scrapeTeams(league: League): Promise<
     {
       teamName: string;
@@ -170,73 +168,43 @@ export class FootballAdminService {
     }
   }
 
-  async saveTeam(teamName: string, teamFlashscoreId: string): Promise<Team> {
+  async scrapeTeamInfo(
+    teamName: string,
+    teamFlashscoreId: string,
+  ): Promise<{
+    teamName: string;
+    teamFlashscoreId: string;
+    countryName: string;
+    logoFlashscoreId: string;
+  }> {
     const browser = await puppeteer.launch({
       executablePath: '/usr/bin/google-chrome',
     });
-    try {
-      let team = await this.teamModel.findOne({
-        name: teamName,
-        flashscoreId: teamFlashscoreId,
-      });
 
-      if (team) return team;
+    const page = await browser.newPage();
 
-      const page = await browser.newPage();
+    await page.goto(
+      `https://www.flashscore.com/team/${teamName}/${teamFlashscoreId}/`,
+      {
+        waitUntil: 'load',
+        timeout: 0,
+      },
+    );
 
-      await page.goto(
-        `https://www.flashscore.com/team/${teamName}/${teamFlashscoreId}/`,
-        {
-          waitUntil: 'load',
-          timeout: 0,
-        },
-      );
+    let countryName = await page.$$eval(
+      '.breadcrumb__link',
+      (elements) => elements[1].getAttribute('href').split('/')[2],
+    );
 
-      let countryName = await page.$$eval(
-        '.breadcrumb__link',
-        (elements) => elements[1].getAttribute('href').split('/')[2],
-      );
+    let logoFlashscoreId = await page.$eval(
+      '.heading__logo',
+      (element: HTMLElement) =>
+        element.style.backgroundImage.slice(5, -6).split('/')[4],
+    );
 
-      let logoFlashscoreId = await page.$eval(
-        '.heading__logo',
-        (element: HTMLElement) =>
-          element.style.backgroundImage.slice(5, -6).split('/')[4],
-      );
+    await browser.close();
 
-      let country = await this.footballAdminRespository.findElseSaveCountry(
-        countryName,
-      );
-      let logo = await this.logoModel.findOne({
-        flashscoreId: logoFlashscoreId,
-      });
-      if (logo == null) {
-        logo = new this.logoModel({ flashscoreId: logoFlashscoreId });
-        let logoUrl = `https://www.flashscore.com/res/image/data/${logoFlashscoreId}.png`;
-        logo.data = Buffer.from(
-          (await axios.get(logoUrl, { responseType: 'arraybuffer' })).data,
-          'utf-8',
-        );
-        await logo.save();
-      }
-
-      let football = await this.sportModel.findOne({ name: 'football' });
-      team = new this.teamModel({
-        name: teamName,
-        sport: football,
-        flashscoreId: teamFlashscoreId,
-        logo: logo,
-        country: country,
-      });
-
-      team.save();
-
-      await browser.close();
-      return team;
-    } catch (error) {
-      console.log(error, teamName, teamFlashscoreId);
-
-      await browser.close();
-    }
+    return { teamName, teamFlashscoreId, countryName, logoFlashscoreId };
   }
 
   async scrapeFinishedSeasons(
@@ -305,7 +273,10 @@ export class FootballAdminService {
     winnerName: string,
   ): Promise<Season> {
     let league = await this.leagueModel.findOne({ _id: leagueId });
-    let winner = await this.saveTeam(winnerName, winnerFlashscoreId);
+    let winner = await this.footballAdminRespository.findElseSaveTeam(
+      winnerName,
+      winnerFlashscoreId,
+    );
     let existingSeason = await this.seasonModel.findOne({
       name: seasonName,
       league: league,

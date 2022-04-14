@@ -208,14 +208,10 @@ export class FootballAdminService {
   }
 
   async scrapeFinishedSeasons(
-    leagueId: string,
+    league: League,
   ): Promise<
     { seasonName: string; winnerFlashscoreId: string; winnerName: string }[]
   > {
-    let league = await this.leagueModel
-      .findOne({ _id: leagueId })
-      .populate('country');
-    if (!league) throw new BadRequestException("league doesn't exist");
     const browser = await puppeteer.launch({
       executablePath: '/usr/bin/google-chrome',
     });
@@ -264,36 +260,5 @@ export class FootballAdminService {
       console.log(err);
       await browser.close();
     }
-  }
-
-  async saveFinishedSeason(
-    leagueId: string,
-    seasonName: string,
-    winnerFlashscoreId: string,
-    winnerName: string,
-  ): Promise<Season> {
-    let league = await this.leagueModel.findOne({ _id: leagueId });
-    let winner = await this.footballAdminRespository.findElseSaveTeam(
-      winnerName,
-      winnerFlashscoreId,
-    );
-    let existingSeason = await this.seasonModel.findOne({
-      name: seasonName,
-      league: league,
-    });
-
-    if (existingSeason) return existingSeason;
-
-    let finishedSeason = new this.seasonModel({
-      name: seasonName,
-      league: league,
-      winner: winner,
-    });
-    try {
-      await finishedSeason.save();
-    } catch (error) {
-      console.log(error, finishedSeason);
-    }
-    return finishedSeason;
   }
 }

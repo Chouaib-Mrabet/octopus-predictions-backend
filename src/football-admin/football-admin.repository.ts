@@ -8,6 +8,7 @@ import { League, LeagueDocument } from 'src/schemas/league.schema';
 import { Team, TeamDocument } from 'src/schemas/team.schema';
 import { Sport, SportDocument } from 'src/schemas/sport.schema';
 import { Logo, LogoDocument } from 'src/schemas/logo.schema';
+import { Season, SeasonDocument } from 'src/schemas/season.schema';
 const axios = require('axios').default;
 
 @Injectable()
@@ -21,6 +22,7 @@ export class FootballAdminRespository {
     @InjectModel(Team.name) private teamModel: Model<TeamDocument>,
     @InjectModel(Sport.name) private sportModel: Model<SportDocument>,
     @InjectModel(Logo.name) private logoModel: Model<LogoDocument>,
+    @InjectModel(Season.name) private seasonModel: Model<SeasonDocument>,
   ) {}
 
   async findElseSaveCountry(countryName: string): Promise<Country> {
@@ -136,5 +138,32 @@ export class FootballAdminRespository {
       await logo.save();
     }
     return logo;
+  }
+
+  async findElseSaveFinishedSeason(
+    league: League,
+    seasonName: string,
+    winnerFlashscoreId: string,
+    winnerName: string,
+  ): Promise<Season> {
+    let winner = await this.findElseSaveTeam(winnerName, winnerFlashscoreId);
+    let existingSeason = await this.seasonModel.findOne({
+      name: seasonName,
+      league: league,
+    });
+
+    if (existingSeason) return existingSeason;
+
+    let finishedSeason = new this.seasonModel({
+      name: seasonName,
+      league: league,
+      winner: winner,
+    });
+    try {
+      await finishedSeason.save();
+    } catch (error) {
+      console.log(error, finishedSeason);
+    }
+    return finishedSeason;
   }
 }

@@ -69,23 +69,26 @@ export class FootballAdminController {
     }
   }
 
-  @Get('scrapeFinishedSeasons/:leagueId')
-  async scrapeFinishedSeasons(
-    @Param('leagueId') leagueId: string,
-  ): Promise<any> {
-    let finishedSeasonsInfo =
-      await this.footballAdminService.scrapeFinishedSeasons(leagueId);
+  @Get('scrapeFinishedSeasons')
+  async scrapeFinishedSeasons(): Promise<any> {
+    let leagues = await this.footballAdminRespository.getLeagues();
 
     let finishedSeasons: Season[] = [];
-    for (let i = 0; i < finishedSeasonsInfo.length; i++) {
-      finishedSeasons.push(
-        await this.footballAdminService.saveFinishedSeason(
-          leagueId,
-          finishedSeasonsInfo[i].seasonName,
-          finishedSeasonsInfo[i].winnerFlashscoreId,
-          finishedSeasonsInfo[i].winnerName,
-        ),
-      );
+    for (let i = 0; i < leagues.length; i++) {
+      console.log(leagues[i])
+      let finishedSeasonsInfo =
+        await this.footballAdminService.scrapeFinishedSeasons(leagues[i]);
+
+      for (let i = 0; i < finishedSeasonsInfo.length; i++) {
+        finishedSeasons.push(
+          await this.footballAdminRespository.findElseSaveFinishedSeason(
+            leagues[i],
+            finishedSeasonsInfo[i].seasonName,
+            finishedSeasonsInfo[i].winnerFlashscoreId,
+            finishedSeasonsInfo[i].winnerName,
+          ),
+        );
+      }
     }
 
     return finishedSeasons;

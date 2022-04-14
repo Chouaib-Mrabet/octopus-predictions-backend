@@ -24,6 +24,15 @@ export class FootballAdminRespository {
     @InjectModel(Season.name) private seasonModel: Model<SeasonDocument>,
   ) {}
 
+  async findElseSaveCountries(countriesNames: string[]): Promise<Country[]> {
+    let countries: Country[] = [];
+    for (let i = 0; i < countriesNames.length; i++) {
+      console.log(countriesNames[i]);
+      countries.push(await this.findElseSaveCountry(countriesNames[i]));
+    }
+    return countries;
+  }
+
   async findElseSaveCountry(countryName: string): Promise<Country> {
     let existingCountry = await this.countryModel.findOne({
       name: countryName,

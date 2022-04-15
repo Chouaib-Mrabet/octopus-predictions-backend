@@ -10,6 +10,7 @@ export class FootballAdminService {
 
   async launchPuppeteerBrowser() {
     if (this.browser == null || !this.browser.isConnected()) {
+      console.log("creating puppeteer browser instance")
       this.browser = await puppeteer.launch({
         executablePath: '/usr/bin/google-chrome',
         headless: true,

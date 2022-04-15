@@ -13,20 +13,23 @@ export class FootballAdminController {
 
   @Get('scrapeCountries')
   async scrapeCountries(): Promise<Country[]> {
+    console.time('scrapeCountries');
     await this.footballAdminService.launchPuppeteerBrowser();
 
-    let countries:Country[] = [];
+    let countries: Country[] = [];
     try {
       let countriesNames: string[] =
         await this.footballAdminService.scrapeCountries();
 
-      countries=await this.footballAdminRespository.findElseSaveCountries(countriesNames)
-
+      countries = await this.footballAdminRespository.findElseSaveCountries(
+        countriesNames,
+      );
     } catch (err) {
       console.log(err);
     } finally {
       await this.footballAdminService.closePuppeteerBrowser();
     }
+    console.timeEnd('scrapeCountries');
     return countries;
   }
 
@@ -114,6 +117,4 @@ export class FootballAdminController {
 
     return finishedSeasons;
   }
-
-
 }

@@ -26,10 +26,22 @@ export class FootballAdminRespository {
 
   async findElseSaveCountries(countriesNames: string[]): Promise<Country[]> {
     let countries: Country[] = [];
-    for (let i = 0; i < countriesNames.length; i++) {
-      console.log(countriesNames[i]);
-      countries.push(await this.findElseSaveCountry(countriesNames[i]));
+    let maximumParallelCalls = 35;
+
+    let i = 0;
+    let j = 0;
+    let paralleSaving: Promise<Country>[] = [];
+    while (i < countriesNames.length) {
+      j = i;
+      paralleSaving = [];
+      while (j < countriesNames.length && j - i < maximumParallelCalls) {
+        paralleSaving.push(this.findElseSaveCountry(countriesNames[i]));
+        j++;
+      }
+      i = j;
+      await Promise.all(paralleSaving).then((values) => countries.push(...values));
     }
+
     return countries;
   }
 

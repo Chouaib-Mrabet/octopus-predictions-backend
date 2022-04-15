@@ -1,4 +1,3 @@
-import { UserService } from './../user/user.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -9,8 +8,6 @@ import { LoginDto } from 'src/dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { MailService } from 'src/mail/mail.service';
 import ConfirmEmailDto from 'src/dto/confirm-email.dto';
-import { AuthTokenStrategy } from './auth-token-strategy.interface';
-import { ConfirmationTokenStrategy } from './confirmation-token-strategy';
 
 @Injectable()
 export class AuthService {
@@ -65,7 +62,11 @@ export class AuthService {
   }
 
   generateToken(user: User): { accessToken: string } {
-    const payload = { username: user.userName, role: user.role };
+    const payload = {
+      username: user.userName,
+      email: user.email,
+      role: user.role,
+    };
 
     return {
       accessToken: this.jwtService.sign(payload),
@@ -73,10 +74,7 @@ export class AuthService {
   }
 
   async confirmEmail(confirmEmailDto: ConfirmEmailDto): Promise<User> {
-    const email = await this.verifyToken(
-      confirmEmailDto.token,
-      new ConfirmationTokenStrategy(),
-    );
+    const email = await this.verifyToken(confirmEmailDto.token);
     const user = await this.userModel.findOne({ email: email });
 
     if (user.verified) {
@@ -89,13 +87,10 @@ export class AuthService {
     return user;
   }
 
-  public async verifyToken(
-    token: string,
-    authTokenStrategy: AuthTokenStrategy,
-  ): Promise<string> {
+  public async verifyToken(token: any): Promise<string> {
     try {
-      const payload = await this.jwtService.verify(token, {
-        secret: authTokenStrategy.getSecret(),
+      const payload = await this.jwtService.verify(token.token, {
+        secret: process.env.JWT_SECRET,
       });
 
       if (typeof payload === 'object' && 'email' in payload) {
@@ -103,9 +98,6 @@ export class AuthService {
       }
       throw new BadRequestException();
     } catch (error) {
-      if (error?.name === 'TokenExpiredError') {
-        throw new BadRequestException('EXPIRED_TOKEN_ERROR');
-      }
       throw new BadRequestException('BAD_TOKEN_ERROR');
     }
   }

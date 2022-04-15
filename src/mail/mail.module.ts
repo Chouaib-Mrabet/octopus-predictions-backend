@@ -14,16 +14,12 @@ import { JwtModule } from '@nestjs/jwt';
           host: 'smtp.freesmtpservers.com',
           port: 25,
           secure: false,
-          // auth: {
-          //   user: 'noreply.octopus.prediction@gmail.com',
-          //   pass: 'N,4;<CvYZP#g8FVm',
-          // },
         },
         defaults: {
           from: `"No Reply" <${config.get('MAIL_FROM')}>`,
         },
         template: {
-          dir: 'C:/Users/chouaib/Desktop/PFA/octopus-predictions-backend/src/mail/templates',
+          dir: join(__dirname, '../../src/mail/templates'),
           adapter: new HandlebarsAdapter(),
           options: {
             strict: true,

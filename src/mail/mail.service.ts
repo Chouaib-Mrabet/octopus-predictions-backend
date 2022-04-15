@@ -6,11 +6,8 @@ import { MailerService } from '@nestjs-modules/mailer';
 export class MailService {
   constructor(private mailerService: MailerService) {}
   async sendUserConfirmation(user: User, token: string) {
-
     const url = process.env.APP_URL + '/auth/confirm/' + token;
 
-
-     console.log("test") 
     await this.mailerService.sendMail({
       to: user.email,
       from: '"Octupus Prediction Support Team" <noreply.octopus.prediction@gmail.com/>',
@@ -21,8 +18,6 @@ export class MailService {
         url: url,
       },
     });
-    console.log("test2") 
-
   }
 
   async sendResetConfirmation(user: User, token: string) {

@@ -8,7 +8,7 @@ import { FootballAdminRepository } from './football-admin.repository';
 export class FootballAdminController {
   constructor(
     private readonly footballAdminService: FootballAdminService,
-    private readonly footballAdminRespository: FootballAdminRepository,
+    private readonly footballAdminRepository: FootballAdminRepository,
   ) {}
 
   @Get('scrapeCountries')
@@ -21,7 +21,7 @@ export class FootballAdminController {
       let countriesNames: string[] =
         await this.footballAdminService.scrapeCountries();
 
-      countries = await this.footballAdminRespository.findElseSaveCountries(
+      countries = await this.footballAdminRepository.findElseSaveCountries(
         countriesNames,
       );
     } catch (err) {
@@ -56,13 +56,13 @@ export class FootballAdminController {
   async scrapeTeams(): Promise<any> {
     await this.footballAdminService.launchPuppeteerBrowser();
     try {
-      let leagues = await this.footballAdminRespository.getLeagues();
+      let leagues = await this.footballAdminRepository.getLeagues();
       for (let i = 0; i < 1; i++) {
         console.log(i + ' league: ' + leagues[i].name);
         let teamsInfo = await this.footballAdminService.scrapeTeams(leagues[i]);
 
         for (let i = 0; i < teamsInfo.length; i++) {
-          let team = await this.footballAdminRespository.findElseSaveTeam(
+          let team = await this.footballAdminRepository.findElseSaveTeam(
             teamsInfo[i].teamName,
             teamsInfo[i].teamFlashscoreId,
           );
@@ -81,7 +81,7 @@ export class FootballAdminController {
     await this.footballAdminService.launchPuppeteerBrowser();
     let finishedSeasons: Season[] = [];
     try {
-      let leagues = await this.footballAdminRespository.getLeagues();
+      let leagues = await this.footballAdminRepository.getLeagues();
 
       for (let i = 0; i < leagues.length; i++) {
         console.log(leagues[i]);
@@ -90,7 +90,7 @@ export class FootballAdminController {
 
         for (let i = 0; i < finishedSeasonsInfo.length; i++) {
           finishedSeasons.push(
-            await this.footballAdminRespository.findElseSaveFinishedSeason(
+            await this.footballAdminRepository.findElseSaveFinishedSeason(
               leagues[i],
               finishedSeasonsInfo[i].seasonName,
               finishedSeasonsInfo[i].winnerFlashscoreId,

@@ -9,7 +9,7 @@ export class FootballAdminService {
   private browser: puppeteer.Browser;
   constructor(
     @Inject(forwardRef(() => FootballAdminRepository))
-    private readonly footballAdminRespository: FootballAdminRepository,
+    private readonly footballAdminRepository: FootballAdminRepository,
   ) {}
 
   async launchPuppeteerBrowser() {
@@ -49,7 +49,6 @@ export class FootballAdminService {
         );
       },
     );
-    // console.table(countriesNames);
 
     await page.close();
     return countriesNames;
@@ -105,7 +104,7 @@ export class FootballAdminService {
 
   async scrapeAndSaveAllLeagues(): Promise<League[]> {
     let leagues: League[] = [];
-    let countries = await this.footballAdminRespository.getCountries();
+    let countries = await this.footballAdminRepository.getCountries();
 
     let i = 0;
     let j = 0;
@@ -130,7 +129,7 @@ export class FootballAdminService {
           let leaguesNames: string[] = countryLeagues.leaguesNames;
           leaguesNames.forEach((leagueName) =>
             parallelSaving.push(
-              this.footballAdminRespository.findElseSaveLeague(
+              this.footballAdminRepository.findElseSaveLeague(
                 leagueName,
                 country,
               ),
@@ -143,25 +142,6 @@ export class FootballAdminService {
         console.log('total leagues :', leagues.length);
       });
     }
-
-    /////////////////////////////
-    // for (let i = 0; i < countries.length; i++) {
-    //   let countryLeaguesNames = await this.scrapeLeagues(countries[i]);
-    //   console.log(countryLeaguesNames);
-    //   for (let j = 0; j < countryLeaguesNames.length; j++) {
-    //     if (countryLeaguesNames[j] == null) {
-    //       console.log('league name is null', countries[i]);
-    //       continue;
-    //     }
-    //     leagues.push(
-    //       await this.footballAdminRespository.findElseSaveLeague(
-    //         countryLeaguesNames[j],
-    //         countries[i],
-    //       ),
-    //     );
-    //   }
-    // }
-    ///////////////////////////////
 
     return leagues;
   }

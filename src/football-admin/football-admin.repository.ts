@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Country, CountryDocument } from 'src/schemas/country.schema';
 import { Model } from 'mongoose';
@@ -14,6 +14,7 @@ const axios = require('axios').default;
 @Injectable()
 export class FootballAdminRespository {
   constructor(
+    @Inject(forwardRef(() => FootballAdminService))
     private readonly footballAdminService: FootballAdminService,
     @InjectModel(Country.name) private countryModel: Model<CountryDocument>,
     @InjectModel(Flag.name) private flagModel: Model<FlagDocument>,
@@ -26,20 +27,22 @@ export class FootballAdminRespository {
 
   async findElseSaveCountries(countriesNames: string[]): Promise<Country[]> {
     let countries: Country[] = [];
-    let maximumParallelCalls = 35;
+    let maximumParallelCalls = 15;
 
     let i = 0;
     let j = 0;
-    let paralleSaving: Promise<Country>[] = [];
+    let parallelSaving: Promise<Country>[] = [];
     while (i < countriesNames.length) {
       j = i;
-      paralleSaving = [];
+      parallelSaving = [];
       while (j < countriesNames.length && j - i < maximumParallelCalls) {
-        paralleSaving.push(this.findElseSaveCountry(countriesNames[i]));
+        parallelSaving.push(this.findElseSaveCountry(countriesNames[j]));
         j++;
       }
       i = j;
-      await Promise.all(paralleSaving).then((values) => countries.push(...values));
+      await Promise.all(parallelSaving).then((values) =>
+        countries.push(...values),
+      );
     }
 
     return countries;

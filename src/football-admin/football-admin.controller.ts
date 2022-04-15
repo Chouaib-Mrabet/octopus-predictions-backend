@@ -33,32 +33,22 @@ export class FootballAdminController {
     return countries;
   }
 
-  @Get('scrapeLeagues')
-  async scrapeLeagues(): Promise<any> {
+  @Get('scrapeAllLeagues')
+  async scrapeAllLeagues(): Promise<any> {
+    console.time('scrapeAllLeagues')
     await this.footballAdminService.launchPuppeteerBrowser();
     let leagues = [];
     try {
-      let countries = await this.footballAdminRespository.getCountries();
 
-      for (let i = 0; i < countries.length; i++) {
-        let countryLeaguesNames = await this.footballAdminService.scrapeLeagues(
-          countries[i],
-        );
-        console.log(countryLeaguesNames);
-        for (let j = 0; j < countryLeaguesNames.length; j++) {
-          leagues.push(
-            await this.footballAdminRespository.findElseSaveLeague(
-              countryLeaguesNames[j],
-              countries[i],
-            ),
-          );
-        }
-      }
+      await this.footballAdminService.scrapeAndSaveAllLeagues()
+
+
     } catch (err) {
       console.log(err);
     } finally {
       await this.footballAdminService.closePuppeteerBrowser();
     }
+    console.timeEnd('scrapeAllLeagues')
     return leagues;
   }
 

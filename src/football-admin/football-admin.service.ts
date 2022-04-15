@@ -1,20 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { League } from 'src/schemas/league.schema';
 import * as puppeteer from 'puppeteer-core';
 import { Country } from 'src/schemas/country.schema';
+import { FootballAdminRespository } from './football-admin.repository';
 
 @Injectable()
 export class FootballAdminService {
   private browser: puppeteer.Browser;
-  constructor() {}
+  constructor(
+    @Inject(forwardRef(() => FootballAdminRespository))
+    private readonly footballAdminRespository: FootballAdminRespository,
+  ) {}
 
   async launchPuppeteerBrowser() {
     if (this.browser == null || !this.browser.isConnected()) {
-      console.log("creating puppeteer browser instance")
+      console.log('creating puppeteer browser instance');
       this.browser = await puppeteer.launch({
         executablePath: '/usr/bin/google-chrome',
         headless: true,
-        args: ["--disable-gpu", "--window-size=1920,1080", "--no-sandbox"],
+        args: ['--disable-gpu', '--window-size=1920,1080', '--no-sandbox'],
       });
     }
   }
@@ -74,7 +78,9 @@ export class FootballAdminService {
     return countryFlagId;
   }
 
-  async scrapeLeagues(country: Country): Promise<string[]> {
+  async scrapeLeagues(
+    country: Country,
+  ): Promise<{ leaguesNames: string[]; country: Country }> {
     const page = await this.browser.newPage();
 
     await page.goto(`https://www.flashscore.com/football/${country.name}`, {
@@ -88,13 +94,76 @@ export class FootballAdminService {
       (leagues) => {
         return leagues.map(
           (league) => league.getAttribute('href').split('/')[3],
-        );
+        ).filter(league=>league!=null);
       },
     );
 
     await page.close();
 
-    return leaguesNames;
+    return { leaguesNames, country };
+  }
+
+  async scrapeAndSaveAllLeagues(): Promise<League[]> {
+    let leagues: League[] = [];
+    let countries = await this.footballAdminRespository.getCountries();
+
+    let i = 0;
+    let j = 0;
+    let maximumParallelCalls = 20;
+    let parallelScrapping: Promise<{
+      leaguesNames: string[];
+      country: Country;
+    }>[] = [];
+
+    while (i < countries.length) {
+      j = i;
+      parallelScrapping = [];
+      while (j < countries.length && j - i < maximumParallelCalls) {
+        parallelScrapping.push(this.scrapeLeagues(countries[j]));
+        j++;
+      }
+      i = j;
+      await Promise.all(parallelScrapping).then(async (countriesLeagues) => {
+        let parallelSaving: Promise<League>[] = [];
+        countriesLeagues.forEach((countryLeagues) => {
+          let country: Country = countryLeagues.country;
+          let leaguesNames: string[] = countryLeagues.leaguesNames;
+          leaguesNames.forEach((leagueName) =>
+            parallelSaving.push(
+              this.footballAdminRespository.findElseSaveLeague(
+                leagueName,
+                country,
+              ),
+            ),
+          );
+        });
+        await Promise.all(parallelSaving).then((newLeagues) =>
+          leagues.push(...newLeagues),
+        );
+        console.log('total leagues :', leagues.length);
+      });
+    }
+
+    /////////////////////////////
+    // for (let i = 0; i < countries.length; i++) {
+    //   let countryLeaguesNames = await this.scrapeLeagues(countries[i]);
+    //   console.log(countryLeaguesNames);
+    //   for (let j = 0; j < countryLeaguesNames.length; j++) {
+    //     if (countryLeaguesNames[j] == null) {
+    //       console.log('league name is null', countries[i]);
+    //       continue;
+    //     }
+    //     leagues.push(
+    //       await this.footballAdminRespository.findElseSaveLeague(
+    //         countryLeaguesNames[j],
+    //         countries[i],
+    //       ),
+    //     );
+    //   }
+    // }
+    ///////////////////////////////
+
+    return leagues;
   }
 
   async scrapeTeams(league: League): Promise<

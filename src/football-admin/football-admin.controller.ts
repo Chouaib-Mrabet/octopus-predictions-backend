@@ -2,13 +2,13 @@ import { Controller, Get } from '@nestjs/common';
 import { Country } from 'src/schemas/country.schema';
 import { FootballAdminService } from './football-admin.service';
 import { Season } from 'src/schemas/season.schema';
-import { FootballAdminRespository } from './football-admin.repository';
+import { FootballAdminRepository } from './football-admin.repository';
 
 @Controller('football-admin')
 export class FootballAdminController {
   constructor(
     private readonly footballAdminService: FootballAdminService,
-    private readonly footballAdminRespository: FootballAdminRespository,
+    private readonly footballAdminRespository: FootballAdminRepository,
   ) {}
 
   @Get('scrapeCountries')

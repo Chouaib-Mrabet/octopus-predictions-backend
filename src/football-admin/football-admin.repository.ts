@@ -12,7 +12,7 @@ import { Season, SeasonDocument } from 'src/schemas/season.schema';
 const axios = require('axios').default;
 
 @Injectable()
-export class FootballAdminRespository {
+export class FootballAdminRepository {
   constructor(
     @Inject(forwardRef(() => FootballAdminService))
     private readonly footballAdminService: FootballAdminService,

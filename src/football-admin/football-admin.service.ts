@@ -2,14 +2,14 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { League } from 'src/schemas/league.schema';
 import * as puppeteer from 'puppeteer-core';
 import { Country } from 'src/schemas/country.schema';
-import { FootballAdminRespository } from './football-admin.repository';
+import { FootballAdminRepository } from './football-admin.repository';
 
 @Injectable()
 export class FootballAdminService {
   private browser: puppeteer.Browser;
   constructor(
-    @Inject(forwardRef(() => FootballAdminRespository))
-    private readonly footballAdminRespository: FootballAdminRespository,
+    @Inject(forwardRef(() => FootballAdminRepository))
+    private readonly footballAdminRespository: FootballAdminRepository,
   ) {}
 
   async launchPuppeteerBrowser() {

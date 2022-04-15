@@ -8,7 +8,7 @@ import { Season, Seasonschema } from 'src/schemas/season.schema';
 import { Sport, SportSchema } from 'src/schemas/sport.schema';
 import { Team, TeamSchema } from 'src/schemas/team.schema';
 import { FootballAdminController } from './football-admin.controller';
-import { FootballAdminRespository } from './football-admin.repository';
+import { FootballAdminRepository } from './football-admin.repository';
 import { FootballAdminService } from './football-admin.service';
 
 @Module({
@@ -22,6 +22,6 @@ import { FootballAdminService } from './football-admin.service';
     MongooseModule.forFeature([{ name: Season.name, schema: Seasonschema }]),
   ],
   controllers: [FootballAdminController],
-  providers: [FootballAdminService,FootballAdminRespository],
+  providers: [FootballAdminService,FootballAdminRepository],
 })
 export class FootballAdminModule {}

@@ -29,11 +29,11 @@ export class FootballService {
   ) {}
 
   async getCountryById(id: string): Promise<Country> {
-    return await this.countryModel.findOne({ _id: id }).populate('flag');
+    return await this.countryModel.findOne({ _id: id });
   }
 
   async getCountries(): Promise<Country[]> {
-    return await this.countryModel.find().populate('flag');
+    return await this.countryModel.find();
   }
 
   async getLeagueById(id: string): Promise<League[]> {

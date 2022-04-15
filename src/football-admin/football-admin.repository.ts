@@ -27,7 +27,7 @@ export class FootballAdminRepository {
 
   async findElseSaveCountries(countriesNames: string[]): Promise<Country[]> {
     let countries: Country[] = [];
-    let maximumParallelCalls = 15;
+    let maximumParallelCalls = 20;
 
     let i = 0;
     let j = 0;

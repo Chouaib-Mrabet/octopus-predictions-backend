@@ -26,9 +26,26 @@ export class FootballAdminService {
   async closePuppeteerBrowser() {
     if (this.browser.isConnected()) await this.browser.close();
   }
+  async getPage(): Promise<puppeteer.Page> {
+    let page = await this.browser.newPage();
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      if (
+        req.resourceType() == 'stylesheet' ||
+        req.resourceType() == 'font' ||
+        req.resourceType() == 'image'
+      ) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+
+    return page;
+  }
 
   async scrapeCountries(): Promise<string[]> {
-    const page = await this.browser.newPage();
+    const page = await this.getPage();
 
     let url = 'https://www.flashscore.com/football';
     await page.goto(url, {
@@ -55,7 +72,7 @@ export class FootballAdminService {
   }
 
   async scrapeCountryFlag(countryName: string) {
-    const page = await this.browser.newPage();
+    const page = await this.browser.newPage(); //stylesheet needed
 
     let url = `https://www.flashscore.com/football/${countryName}/`;
 
@@ -80,7 +97,7 @@ export class FootballAdminService {
   async scrapeLeagues(
     country: Country,
   ): Promise<{ leaguesNames: string[]; country: Country }> {
-    const page = await this.browser.newPage();
+    const page = await this.getPage();
 
     await page.goto(`https://www.flashscore.com/football/${country.name}`, {
       waitUntil: 'networkidle2',
@@ -91,9 +108,9 @@ export class FootballAdminService {
     let leaguesNames = await countryLeaguesListElement.$$eval(
       'a.leftMenu__href',
       (leagues) => {
-        return leagues.map(
-          (league) => league.getAttribute('href').split('/')[3],
-        ).filter(league=>league!=null);
+        return leagues
+          .map((league) => league.getAttribute('href').split('/')[3])
+          .filter((league) => league != null);
       },
     );
 
@@ -152,7 +169,7 @@ export class FootballAdminService {
       teamFlashscoreId: string;
     }[]
   > {
-    const page = await this.browser.newPage();
+    const page = await this.getPage();
 
     let url = `https://www.flashscore.com/football/${league.country.name}/${league.name}/standings`;
 
@@ -185,7 +202,7 @@ export class FootballAdminService {
     countryName: string;
     logoFlashscoreId: string;
   }> {
-    const page = await this.browser.newPage();
+    const page = await this.getPage();
 
     await page.goto(
       `https://www.flashscore.com/team/${teamName}/${teamFlashscoreId}/`,
@@ -216,7 +233,7 @@ export class FootballAdminService {
   ): Promise<
     { seasonName: string; winnerFlashscoreId: string; winnerName: string }[]
   > {
-    const page = await this.browser.newPage();
+    const page = await this.getPage();
 
     await page.goto(
       `https://www.flashscore.com/football/${league.country.name}/${league.name}/archive`,

@@ -22,11 +22,11 @@ export class League {
   @Prop({ default: Date.now })
   updatedAt!: Date;
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Sport.name })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Sport.name,required:true })
   @Type(() => Sport)
   sport: Sport;
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Country.name })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Country.name,required:true })
   @Type(() => Country)
   country: Country;
 }

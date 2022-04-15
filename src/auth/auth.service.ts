@@ -6,12 +6,15 @@ import { User, UserDocument } from 'src/schemas/user.schema';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from 'src/dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { MailService } from 'src/mail/mail.service';
+import ConfirmEmailDto from 'src/dto/confirm-email.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
   hello() {
@@ -36,10 +39,12 @@ export class AuthService {
       hashedPassword: hashedPassword,
     });
 
-    //console.log(newUser);
-
     await newUser.save();
-    return this.generateToken(newUser);
+    let token = this.generateToken(newUser);
+
+    this.mailService.sendUserConfirmation(newUser, token.accessToken);
+
+    return token;
   }
 
   async login(loginDto: LoginDto): Promise<{ accessToken: string }> {
@@ -57,10 +62,43 @@ export class AuthService {
   }
 
   generateToken(user: User): { accessToken: string } {
-    const payload = { username: user.userName, role: user.role };
+    const payload = {
+      username: user.userName,
+      email: user.email,
+      role: user.role,
+    };
 
     return {
       accessToken: this.jwtService.sign(payload),
     };
+  }
+
+  async confirmEmail(confirmEmailDto: ConfirmEmailDto): Promise<User> {
+    const email = await this.verifyToken(confirmEmailDto.token);
+    const user = await this.userModel.findOne({ email: email });
+
+    if (user.verified) {
+      throw new BadRequestException('USER_ALREADY_CONFIRMED_ERROR_MESSAGE');
+    }
+
+    (await user).verified = true;
+    (await user).save();
+
+    return user;
+  }
+
+  public async verifyToken(token: any): Promise<string> {
+    try {
+      const payload = await this.jwtService.verify(token.token, {
+        secret: process.env.JWT_SECRET,
+      });
+
+      if (typeof payload === 'object' && 'email' in payload) {
+        return payload.email;
+      }
+      throw new BadRequestException();
+    } catch (error) {
+      throw new BadRequestException('BAD_TOKEN_ERROR');
+    }
   }
 }

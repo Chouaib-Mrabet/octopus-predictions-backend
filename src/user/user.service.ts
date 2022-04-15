@@ -73,4 +73,17 @@ export class UserService {
 
     return await this.authService.generateToken(userFromDb);
   }
+
+  async findByEmail(email: string): Promise<User> {
+    return await this.userModel.findOne({ email: email });
+  }
+
+  async markEmailAsConfirmed(userEmail: string): Promise<User> {
+    let user = this.userModel.findOne({ email: userEmail });
+
+    (await user).verified = true;
+    (await user).save();
+
+    return user;
+  }
 }

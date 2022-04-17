@@ -152,7 +152,12 @@ export class FootballAdminRepository {
     if (existingLogo) return existingLogo;
 
     let logo = new this.logoModel({ flashscoreId: logoFlashscoreId });
-    let logoUrl = `https://www.flashscore.com/res/image/data/${logoFlashscoreId}.png`;
+    let logoUrl: string;
+    if (logoFlashscoreId != null)
+      logoUrl = `https://www.flashscore.com/res/image/data/${logoFlashscoreId}.png`;
+    else
+      logoUrl =
+        'https://www.flashscore.com/res/image/empty-logo-team-share.gif';
     logo.data = Buffer.from(
       (await axios.get(logoUrl, { responseType: 'arraybuffer' })).data,
       'utf-8',

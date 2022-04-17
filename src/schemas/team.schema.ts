@@ -9,12 +9,10 @@ import { Sport } from './sport.schema';
 
 export type TeamDocument = Team & Document;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, autoIndex: true })
 export class Team {
   @Prop({
     required: true,
-    index: true,
-    trim: true,
   })
   name: string;
 
@@ -38,7 +36,7 @@ export class Team {
   logo: Logo;
 
   @Prop({
-    unique: true,
+    required: true,
   })
   flashscoreId: string;
 
@@ -50,3 +48,5 @@ export class Team {
 }
 
 export const TeamSchema = SchemaFactory.createForClass(Team);
+
+TeamSchema.index({ name: 1, flashscoreId: 1 }, { unique: true });

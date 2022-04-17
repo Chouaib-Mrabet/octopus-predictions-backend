@@ -3,6 +3,8 @@ import { Country } from 'src/schemas/country.schema';
 import { FootballAdminService } from './football-admin.service';
 import { Season } from 'src/schemas/season.schema';
 import { FootballAdminRepository } from './football-admin.repository';
+import { Team } from 'src/schemas/team.schema';
+import { League } from 'src/schemas/league.schema';
 
 @Controller('football-admin')
 export class FootballAdminController {
@@ -34,46 +36,35 @@ export class FootballAdminController {
   }
 
   @Get('scrapeAllLeagues')
-  async scrapeAllLeagues(): Promise<any> {
-    console.time('scrapeAllLeagues')
+  async scrapeAllLeagues(): Promise<League[]> {
+    console.time('scrapeAllLeagues');
     await this.footballAdminService.launchPuppeteerBrowser();
     let leagues = [];
     try {
-
-      await this.footballAdminService.scrapeAndSaveAllLeagues()
-
-
+      leagues=await this.footballAdminService.scrapeAndSaveAllLeagues();
     } catch (err) {
       console.log(err);
     } finally {
       await this.footballAdminService.closePuppeteerBrowser();
     }
-    console.timeEnd('scrapeAllLeagues')
+    console.timeEnd('scrapeAllLeagues');
     return leagues;
   }
 
-  @Get('scrapeTeams')
-  async scrapeTeams(): Promise<any> {
+  @Get('scrapeAllTeams')
+  async scrapeAllTeams(): Promise<Team[]> {
+    console.time('scrapeAllTeams')
     await this.footballAdminService.launchPuppeteerBrowser();
+    let teams = [];
     try {
-      let leagues = await this.footballAdminRepository.getLeagues();
-      for (let i = 0; i < 1; i++) {
-        console.log(i + ' league: ' + leagues[i].name);
-        let teamsInfo = await this.footballAdminService.scrapeTeams(leagues[i]);
-
-        for (let i = 0; i < teamsInfo.length; i++) {
-          let team = await this.footballAdminRepository.findElseSaveTeam(
-            teamsInfo[i].teamName,
-            teamsInfo[i].teamFlashscoreId,
-          );
-          console.log(team.name);
-        }
-      }
+      teams = await this.footballAdminService.scrapeAndSaveAllTeams();
     } catch (err) {
       console.log(err);
     } finally {
       await this.footballAdminService.closePuppeteerBrowser();
     }
+    console.timeEnd('scrapeAllTeams')
+    return teams;
   }
 
   @Get('scrapeFinishedSeasons')

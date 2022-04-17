@@ -10,14 +10,12 @@ export type SeasonDocument = Season & Document;
 export class Season {
   @Prop({
     required: true,
-    index: true,
     trim: true,
   })
   name: string;
 
   @Prop({
     required: true,
-    index:true,
     type: mongoose.Schema.Types.ObjectId,
     ref: League.name,
   })
@@ -32,3 +30,5 @@ export class Season {
 
 
 export const Seasonschema = SchemaFactory.createForClass(Season);
+
+Seasonschema.index({name:1,league:1},{unique:true})

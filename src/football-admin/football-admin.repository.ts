@@ -108,7 +108,7 @@ export class FootballAdminRepository {
   }
 
   async getLeagues(): Promise<League[]> {
-    return await this.leagueModel.find().populate('country');
+    return (await this.leagueModel.find().populate('country')).splice(159,10);
   }
 
   async getTeams(): Promise<Team[]> {
@@ -118,6 +118,8 @@ export class FootballAdminRepository {
   async findElseSaveTeam(
     teamName: string,
     teamFlashscoreId: string,
+    countryName: string,
+    logoFlashscoreId: string,
   ): Promise<Team> {
     let team = await this.teamModel.findOne({
       name: teamName,
@@ -126,40 +128,37 @@ export class FootballAdminRepository {
 
     if (team) return team;
 
-    let teamInfo = await this.footballAdminService.scrapeTeamInfo(
-      teamName,
-      teamFlashscoreId,
-    );
-
-    let country = await this.findElseSaveCountry(teamInfo.countryName);
-    let logo = await this.findElseSaveLogo(teamInfo.logoFlashscoreId);
+    let country = await this.findElseSaveCountry(countryName);
+    let logo = await this.findElseSaveLogo(logoFlashscoreId);
     let football = await this.sportModel.findOne({ name: 'football' });
     team = new this.teamModel({
-      name: teamInfo.teamName,
+      name: teamName,
       sport: football,
-      flashscoreId: teamInfo.teamFlashscoreId,
+      flashscoreId: teamFlashscoreId,
       logo: logo,
       country: country,
     });
 
-    team.save();
+    await team.save();
+    console.log('saving : ' + teamName);
 
     return team;
   }
 
   async findElseSaveLogo(logoFlashscoreId: string): Promise<Logo> {
-    let logo = await this.logoModel.findOne({
+    let existingLogo = await this.logoModel.findOne({
       flashscoreId: logoFlashscoreId,
     });
-    if (logo == null) {
-      logo = new this.logoModel({ flashscoreId: logoFlashscoreId });
-      let logoUrl = `https://www.flashscore.com/res/image/data/${logoFlashscoreId}.png`;
-      logo.data = Buffer.from(
-        (await axios.get(logoUrl, { responseType: 'arraybuffer' })).data,
-        'utf-8',
-      );
-      await logo.save();
-    }
+    if (existingLogo) return existingLogo;
+
+    let logo = new this.logoModel({ flashscoreId: logoFlashscoreId });
+    let logoUrl = `https://www.flashscore.com/res/image/data/${logoFlashscoreId}.png`;
+    logo.data = Buffer.from(
+      (await axios.get(logoUrl, { responseType: 'arraybuffer' })).data,
+      'utf-8',
+    );
+    await logo.save();
+
     return logo;
   }
 
@@ -169,7 +168,22 @@ export class FootballAdminRepository {
     winnerFlashscoreId: string,
     winnerName: string,
   ): Promise<Season> {
-    let winner = await this.findElseSaveTeam(winnerName, winnerFlashscoreId);
+    let winner: Team = await this.teamModel.findOne({
+      name: winnerName,
+      flashscoreId: winnerFlashscoreId,
+    });
+    if (winner == null) {
+      let winnerInfo = await this.footballAdminService.scrapeTeamInfo(
+        winnerName,
+        winnerFlashscoreId,
+      );
+      winner = await this.findElseSaveTeam(
+        winnerInfo.teamName,
+        winnerInfo.teamFlashscoreId,
+        winnerInfo.countryName,
+        winnerInfo.logoFlashscoreId,
+      );
+    }
     let existingSeason = await this.seasonModel.findOne({
       name: seasonName,
       league: league,

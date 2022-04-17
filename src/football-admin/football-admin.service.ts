@@ -3,6 +3,7 @@ import { League } from 'src/schemas/league.schema';
 import * as puppeteer from 'puppeteer-core';
 import { Country } from 'src/schemas/country.schema';
 import { FootballAdminRepository } from './football-admin.repository';
+import { Team } from 'src/schemas/team.schema';
 
 @Injectable()
 export class FootballAdminService {
@@ -45,11 +46,12 @@ export class FootballAdminService {
   }
 
   async scrapeCountries(): Promise<string[]> {
-    const page = await this.getPage();
+    let page = await this.getPage();
 
     let url = 'https://www.flashscore.com/football';
     await page.goto(url, {
       waitUntil: 'networkidle2',
+      timeout: 0,
     });
 
     let countriesNames = [];
@@ -72,7 +74,7 @@ export class FootballAdminService {
   }
 
   async scrapeCountryFlag(countryName: string) {
-    const page = await this.browser.newPage(); //stylesheet needed
+    let page = await this.browser.newPage(); //stylesheet needed
 
     let url = `https://www.flashscore.com/football/${countryName}/`;
 
@@ -97,22 +99,27 @@ export class FootballAdminService {
   async scrapeLeagues(
     country: Country,
   ): Promise<{ leaguesNames: string[]; country: Country }> {
-    const page = await this.getPage();
+    console.log(country.name);
+    let page = await this.getPage();
 
     await page.goto(`https://www.flashscore.com/football/${country.name}`, {
       waitUntil: 'networkidle2',
       timeout: 0,
     });
     let countryLeaguesListElement = await page.$('div.selected-country-list');
+    let leaguesNames = [];
+    if (countryLeaguesListElement)
+      leaguesNames = await countryLeaguesListElement.$$eval(
+        'a.leftMenu__href',
+        (leagues) => {
+          return leagues.map(
+            (league) => league.getAttribute('href').split('/')[3],
+          );
+        },
+      );
 
-    let leaguesNames = await countryLeaguesListElement.$$eval(
-      'a.leftMenu__href',
-      (leagues) => {
-        return leagues
-          .map((league) => league.getAttribute('href').split('/')[3])
-          .filter((league) => league != null);
-      },
-    );
+    if (leaguesNames)
+      leaguesNames = leaguesNames.filter((leagueName) => leagueName != null);
 
     await page.close();
 
@@ -122,45 +129,83 @@ export class FootballAdminService {
   async scrapeAndSaveAllLeagues(): Promise<League[]> {
     let leagues: League[] = [];
     let countries = await this.footballAdminRepository.getCountries();
+    countries.splice(0, 175);
+    let maximumParallelScrapping = 1;
 
-    let i = 0;
-    let j = 0;
-    let maximumParallelCalls = 20;
-    let parallelScrapping: Promise<{
-      leaguesNames: string[];
-      country: Country;
-    }>[] = [];
-
-    while (i < countries.length) {
-      j = i;
-      parallelScrapping = [];
-      while (j < countries.length && j - i < maximumParallelCalls) {
-        parallelScrapping.push(this.scrapeLeagues(countries[j]));
-        j++;
-      }
-      i = j;
-      await Promise.all(parallelScrapping).then(async (countriesLeagues) => {
-        let parallelSaving: Promise<League>[] = [];
-        countriesLeagues.forEach((countryLeagues) => {
-          let country: Country = countryLeagues.country;
-          let leaguesNames: string[] = countryLeagues.leaguesNames;
-          leaguesNames.forEach((leagueName) =>
-            parallelSaving.push(
-              this.footballAdminRepository.findElseSaveLeague(
-                leagueName,
-                country,
+    while (countries.length > 0) {
+      await Promise.all(
+        countries
+          .splice(0, maximumParallelScrapping)
+          .map((country) => this.scrapeLeagues(country)),
+      ).then(async (leaguesByCountry) => {
+        for (let leaguesOfOneCountry of leaguesByCountry) {
+          for (let league of leaguesOfOneCountry.leaguesNames) {
+            leagues.push(
+              await this.footballAdminRepository.findElseSaveLeague(
+                league,
+                leaguesOfOneCountry.country,
               ),
-            ),
-          );
-        });
-        await Promise.all(parallelSaving).then((newLeagues) =>
-          leagues.push(...newLeagues),
-        );
-        console.log('total leagues :', leagues.length);
+            );
+            console.log(league + ' : ' + leaguesOfOneCountry.country.name);
+          }
+        }
       });
     }
 
     return leagues;
+  }
+
+  async scrapeAndSaveAllTeams(): Promise<Team[]> {
+    let leagues = await this.footballAdminRepository.getLeagues();
+    let teams: Team[] = [];
+
+    let maximumLeaguesParallelScrapping = 10;
+    let maximumTeamsParallelScrapping = 30;
+
+    while (leagues.length > 0) {
+      let subLeaguesScrapping = leagues
+        .splice(0, maximumLeaguesParallelScrapping)
+        .map((league) => this.scrapeTeams(league));
+      await Promise.all(subLeaguesScrapping)
+        .then(async (teamsByLeague) => {
+          let allTeams = [];
+
+          for (let teamsOfOneLeague of teamsByLeague) {
+            allTeams.push(...teamsOfOneLeague);
+          }
+
+          while (allTeams.length > 0) {
+            let subTeamsScrapping = allTeams
+              .splice(0, maximumTeamsParallelScrapping)
+              .map((team) =>
+                this.scrapeTeamInfo(team.teamName, team.teamFlashscoreId),
+              );
+            await Promise.all(subTeamsScrapping)
+              .then(async (teamsInfo) => {
+                for (let teamInfo of teamsInfo) {
+                  teams.push(
+                    await this.footballAdminRepository.findElseSaveTeam(
+                      teamInfo.teamName,
+                      teamInfo.teamFlashscoreId,
+                      teamInfo.countryName,
+                      teamInfo.logoFlashscoreId,
+                    ),
+                  );
+                  console.log('total teams :', teams.length);
+                  console.timeLog('scrapeAllTeams');
+                }
+              })
+              .catch((err) => {
+                console.log(err, 'error: ', subTeamsScrapping);
+              });
+          }
+        })
+        .catch((err) => {
+          console.log(err, 'error: ', subLeaguesScrapping);
+        });
+    }
+
+    return teams;
   }
 
   async scrapeTeams(league: League): Promise<
@@ -169,7 +214,8 @@ export class FootballAdminService {
       teamFlashscoreId: string;
     }[]
   > {
-    const page = await this.getPage();
+    console.log('scrapping teams of ' + league.name);
+    let page = await this.getPage();
 
     let url = `https://www.flashscore.com/football/${league.country.name}/${league.name}/standings`;
 
@@ -202,7 +248,8 @@ export class FootballAdminService {
     countryName: string;
     logoFlashscoreId: string;
   }> {
-    const page = await this.getPage();
+    console.log('scrapping : ' + teamName);
+    let page = await this.getPage();
 
     await page.goto(
       `https://www.flashscore.com/team/${teamName}/${teamFlashscoreId}/`,
@@ -233,7 +280,7 @@ export class FootballAdminService {
   ): Promise<
     { seasonName: string; winnerFlashscoreId: string; winnerName: string }[]
   > {
-    const page = await this.getPage();
+    let page = await this.getPage();
 
     await page.goto(
       `https://www.flashscore.com/football/${league.country.name}/${league.name}/archive`,

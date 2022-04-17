@@ -191,9 +191,9 @@ export class FootballAdminService {
                       teamInfo.logoFlashscoreId,
                     ),
                   );
-                  console.log('total teams :', teams.length);
-                  console.timeLog('scrapeAllTeams');
                 }
+                console.log('total teams :', teams.length);
+                console.timeLog('scrapeAllTeams');
               })
               .catch((err) => {
                 console.log(err, 'error: ', subTeamsScrapping);
@@ -220,7 +220,7 @@ export class FootballAdminService {
     let url = `https://www.flashscore.com/football/${league.country.name}/${league.name}/standings`;
 
     await page.goto(url, {
-      waitUntil: 'load',
+      waitUntil: 'networkidle2',
       timeout: 0,
     });
 
@@ -235,6 +235,7 @@ export class FootballAdminService {
     );
 
     await page.close();
+    if (teamsInfo.length == 0) console.log('0 teams: ' + league.name);
 
     return teamsInfo;
   }

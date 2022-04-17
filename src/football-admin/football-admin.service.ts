@@ -4,6 +4,7 @@ import * as puppeteer from 'puppeteer-core';
 import { Country } from 'src/schemas/country.schema';
 import { FootballAdminRepository } from './football-admin.repository';
 import { Team } from 'src/schemas/team.schema';
+import { Season } from 'src/schemas/season.schema';
 
 @Injectable()
 export class FootballAdminService {
@@ -25,7 +26,10 @@ export class FootballAdminService {
   }
 
   async closePuppeteerBrowser() {
-    if (this.browser.isConnected()) await this.browser.close();
+    if (this.browser.isConnected()) {
+      await this.browser.close();
+      console.log('closing puppeteer browser instance');
+    }
   }
   async getPage(): Promise<puppeteer.Page> {
     let page = await this.browser.newPage();
@@ -70,6 +74,7 @@ export class FootballAdminService {
     );
 
     await page.close();
+
     return countriesNames;
   }
 
@@ -129,7 +134,6 @@ export class FootballAdminService {
   async scrapeAndSaveAllLeagues(): Promise<League[]> {
     let leagues: League[] = [];
     let countries = await this.footballAdminRepository.getCountries();
-    countries.splice(0, 175);
     let maximumParallelScrapping = 1;
 
     while (countries.length > 0) {
@@ -276,50 +280,104 @@ export class FootballAdminService {
     return { teamName, teamFlashscoreId, countryName, logoFlashscoreId };
   }
 
-  async scrapeFinishedSeasons(
-    league: League,
-  ): Promise<
-    { seasonName: string; winnerFlashscoreId: string; winnerName: string }[]
-  > {
+  async scrapeSeasons(league: League): Promise<{
+    seasons: {
+      seasonName: string;
+      winnerFlashscoreId: string;
+      winnerName: string;
+      finished: boolean;
+      league: League;
+    }[];
+    league: League;
+  }> {
     let page = await this.getPage();
+    let seasonsInfo = [];
 
-    await page.goto(
-      `https://www.flashscore.com/football/${league.country.name}/${league.name}/archive`,
-      {
-        waitUntil: 'networkidle2',
-        timeout: 0,
-      },
-    );
+    try {
+      await page.goto(
+        `https://www.flashscore.com/football/${league.country.name}/${league.name}/archive`,
+        {
+          waitUntil: 'networkidle2',
+          timeout: 0,
+        },
+      );
 
-    let finishedSeasons = await page.$$eval('.archive__row', (rows) =>
-      rows
-        .filter(
-          (row) =>
-            row
-              .querySelector('.archive__winner')
-              .querySelector('.archive__text') != null,
-        )
-        .map((row) => ({
-          seasonName: row
-            .querySelector('.archive__season')
-            .querySelector('.archive__text')
-            .getAttribute('href')
-            .split('/')[3],
-          winnerFlashscoreId: row
-            .querySelector('.archive__winner')
-            .querySelector('.archive__text')
-            .getAttribute('href')
-            .split('/')[3],
+      seasonsInfo = await page.$$eval('.archive__row', (rows) =>
+        rows.map((row) => {
+          let finished = true;
+          let winnerName = null;
+          let winnerFlashscoreId = null;
 
-          winnerName: row
-            .querySelector('.archive__winner')
-            .querySelector('.archive__text')
-            .getAttribute('href')
-            .split('/')[2],
-        })),
-    );
+          if (row.querySelector('.archive__winner') != null) {
+            if (
+              row
+                .querySelector('.archive__winner')
+                .querySelector('.archive__text') == null
+            )
+              finished = false;
 
-    await page.close();
-    return finishedSeasons;
+            if (finished) {
+              let winnerUrl = row
+                .querySelector('.archive__winner')
+                .querySelector('.archive__text')
+                .getAttribute('href');
+              //some finished season has no winner
+              if (winnerUrl != null) {
+                winnerName = winnerUrl.split('/')[2];
+                winnerFlashscoreId = winnerUrl.split('/')[3];
+              }
+            }
+          }
+
+          return {
+            seasonName: row
+              .querySelector('.archive__season')
+              .querySelector('.archive__text')
+              .getAttribute('href')
+              .split('/')[3],
+            winnerFlashscoreId: winnerFlashscoreId,
+            winnerName: winnerName,
+            finished: finished,
+          };
+        }),
+      );
+    } catch (err) {
+      console.log(league, 'error:', err);
+    } finally {
+      await page.close();
+      return { seasons: seasonsInfo, league: league };
+    }
+  }
+
+  async scrapeAndSaveAllSeasons() {
+    console.time('scrapeAllSeasons');
+    let leagues = await this.footballAdminRepository.getLeagues();
+    let maximumLeaguesParallelScrapping = 20;
+    let seasons: Season[] = [];
+
+    while (leagues.length > 0) {
+      let subLeaguesScrapping = leagues
+        .splice(0, maximumLeaguesParallelScrapping)
+        .map((league) => this.scrapeSeasons(league));
+      await Promise.all(subLeaguesScrapping).then(async (seasonsByLeagues) => {
+        for (let seasonsByOneLeague of seasonsByLeagues) {
+          for (let season of seasonsByOneLeague.seasons) {
+            seasons.push(
+              await this.footballAdminRepository.findElseSaveSeason(
+                seasonsByOneLeague.league,
+                season.seasonName,
+                season.winnerFlashscoreId,
+                season.winnerName,
+                season.finished,
+              ),
+            );
+          }
+        }
+        console.log('total seasons :', seasons.length);
+        console.log('remaining leagues :', leagues.length);
+        console.timeLog('scrapeAllSeasons');
+      });
+    }
+    console.timeEnd('scrapeAllSeasons');
   }
 }

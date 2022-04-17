@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Req } from '@nestjs/common';
 import { Country } from 'src/schemas/country.schema';
 import { FootballAdminService } from './football-admin.service';
 import { Season } from 'src/schemas/season.schema';
@@ -41,7 +41,7 @@ export class FootballAdminController {
     await this.footballAdminService.launchPuppeteerBrowser();
     let leagues = [];
     try {
-      leagues=await this.footballAdminService.scrapeAndSaveAllLeagues();
+      leagues = await this.footballAdminService.scrapeAndSaveAllLeagues();
     } catch (err) {
       console.log(err);
     } finally {
@@ -53,7 +53,7 @@ export class FootballAdminController {
 
   @Get('scrapeAllTeams')
   async scrapeAllTeams(): Promise<Team[]> {
-    console.time('scrapeAllTeams')
+    console.time('scrapeAllTeams');
     await this.footballAdminService.launchPuppeteerBrowser();
     let teams = [];
     try {
@@ -63,39 +63,24 @@ export class FootballAdminController {
     } finally {
       await this.footballAdminService.closePuppeteerBrowser();
     }
-    console.timeEnd('scrapeAllTeams')
+    console.timeEnd('scrapeAllTeams');
     return teams;
   }
 
-  @Get('scrapeFinishedSeasons')
-  async scrapeFinishedSeasons(): Promise<any> {
+  @Get('scrapeAllSeasons')
+  async scrapeAllSeasons(@Req() req): Promise<any> {
+    req.on('close', () => this.footballAdminService.closePuppeteerBrowser());
+
     await this.footballAdminService.launchPuppeteerBrowser();
-    let finishedSeasons: Season[] = [];
+    let seasons: Season[] = [];
     try {
-      let leagues = await this.footballAdminRepository.getLeagues();
-
-      for (let i = 0; i < leagues.length; i++) {
-        console.log(leagues[i]);
-        let finishedSeasonsInfo =
-          await this.footballAdminService.scrapeFinishedSeasons(leagues[i]);
-
-        for (let i = 0; i < finishedSeasonsInfo.length; i++) {
-          finishedSeasons.push(
-            await this.footballAdminRepository.findElseSaveFinishedSeason(
-              leagues[i],
-              finishedSeasonsInfo[i].seasonName,
-              finishedSeasonsInfo[i].winnerFlashscoreId,
-              finishedSeasonsInfo[i].winnerName,
-            ),
-          );
-        }
-      }
+      await this.footballAdminService.scrapeAndSaveAllSeasons()
     } catch (err) {
       console.log(err);
     } finally {
       await this.footballAdminService.closePuppeteerBrowser();
     }
 
-    return finishedSeasons;
+    return seasons;
   }
 }

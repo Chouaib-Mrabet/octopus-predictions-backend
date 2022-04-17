@@ -162,45 +162,48 @@ export class FootballAdminRepository {
     return logo;
   }
 
-  async findElseSaveFinishedSeason(
+  async findElseSaveSeason(
     league: League,
     seasonName: string,
     winnerFlashscoreId: string,
     winnerName: string,
+    finished: boolean,
   ): Promise<Season> {
-    let winner: Team = await this.teamModel.findOne({
-      name: winnerName,
-      flashscoreId: winnerFlashscoreId,
-    });
-    if (winner == null) {
-      let winnerInfo = await this.footballAdminService.scrapeTeamInfo(
-        winnerName,
-        winnerFlashscoreId,
-      );
-      winner = await this.findElseSaveTeam(
-        winnerInfo.teamName,
-        winnerInfo.teamFlashscoreId,
-        winnerInfo.countryName,
-        winnerInfo.logoFlashscoreId,
-      );
-    }
-    let existingSeason = await this.seasonModel.findOne({
-      name: seasonName,
-      league: league,
-    });
-
-    if (existingSeason) return existingSeason;
-
-    let finishedSeason = new this.seasonModel({
-      name: seasonName,
-      league: league,
-      winner: winner,
-    });
     try {
-      await finishedSeason.save();
+      let winner: Team = await this.teamModel.findOne({
+        name: winnerName,
+        flashscoreId: winnerFlashscoreId,
+      });
+      if (winner == null && winnerFlashscoreId != null && winnerName != null) {
+        let winnerInfo = await this.footballAdminService.scrapeTeamInfo(
+          winnerName,
+          winnerFlashscoreId,
+        );
+        winner = await this.findElseSaveTeam(
+          winnerInfo.teamName,
+          winnerInfo.teamFlashscoreId,
+          winnerInfo.countryName,
+          winnerInfo.logoFlashscoreId,
+        );
+      }
+      let existingSeason = await this.seasonModel.findOne({
+        name: seasonName,
+        league: league,
+      });
+
+      if (existingSeason) return existingSeason;
+
+      let newSeason = new this.seasonModel({
+        name: seasonName,
+        finished: finished,
+        league: league,
+        winner: winner,
+      });
+      await newSeason.save();
+      return newSeason;
     } catch (error) {
-      console.log(error, finishedSeason);
+      console.log(error, seasonName);
+      return null;
     }
-    return finishedSeason;
   }
 }

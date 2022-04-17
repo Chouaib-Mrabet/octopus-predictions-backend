@@ -25,10 +25,13 @@ export class Season {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Team.name })
   @Type(() => Team)
   winner: Team;
+
+  @Prop({
+    required: true,
+  })
+  finished: boolean;
 }
-
-
 
 export const Seasonschema = SchemaFactory.createForClass(Season);
 
-Seasonschema.index({name:1,league:1},{unique:true})
+Seasonschema.index({ name: 1, league: 1 }, { unique: true });

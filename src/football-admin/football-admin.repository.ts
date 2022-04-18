@@ -213,5 +213,75 @@ export class FootballAdminRepository {
       return null;
     }
   }
-  async findElseSaveMatch() {}
+  async findElseSaveMatch(
+    flagFlashscoreId: string,
+    round: string,
+    dateTimeMs: number,
+    homeTeamIds: {
+      teamName: string;
+      teamFlashscoreId: string;
+    },
+    awayTeamIds: {
+      teamName: string;
+      teamFlashscoreId: string;
+    },
+    goals: {
+      time: string;
+      homeTeam: boolean;
+    }[],
+    season: Season,
+    finished: boolean,
+  ): Promise<Match> {
+    let existingMatch = await this.matchModel.findOne({
+      flashscoreId: flagFlashscoreId,
+    });
+    if (existingMatch) return existingMatch;
+
+    let homeTeam: Team = await this.teamModel.findOne({
+      name: homeTeamIds.teamName,
+      flashscoreId: homeTeamIds.teamFlashscoreId,
+    });
+    if (homeTeam == null) {
+      let teamInfo = await this.footballAdminService.scrapeTeamInfo(
+        homeTeamIds.teamName,
+        homeTeamIds.teamFlashscoreId,
+      );
+      homeTeam = await this.findElseSaveTeam(
+        teamInfo.teamName,
+        teamInfo.teamFlashscoreId,
+        teamInfo.countryName,
+        teamInfo.logoFlashscoreId,
+      );
+    }
+
+    let awayTeam: Team = await this.teamModel.findOne({
+      name: awayTeamIds.teamName,
+      flashscoreId: awayTeamIds.teamFlashscoreId,
+    });
+    if (awayTeam == null) {
+      let teamInfo = await this.footballAdminService.scrapeTeamInfo(
+        awayTeamIds.teamName,
+        awayTeamIds.teamFlashscoreId,
+      );
+      awayTeam = await this.findElseSaveTeam(
+        teamInfo.teamName,
+        teamInfo.teamFlashscoreId,
+        teamInfo.countryName,
+        teamInfo.logoFlashscoreId,
+      );
+    }
+
+    let newMatch = new this.matchModel({
+      flashscoreId: flagFlashscoreId,
+      round: round,
+      date: dateTimeMs,
+      goals: goals,
+      season: season,
+      finished: finished,
+      homeTeam: homeTeam,
+      awayTeam: awayTeam,
+    });
+
+    return await newMatch.save();
+  }
 }

@@ -93,7 +93,11 @@ export class FootballAdminController {
   }
 
   @Get('scrapeAllMatchesBySeason/:id')
-  async scrapeAllMatchesBySeason(@Param('id') id: string): Promise<any> {
+  async scrapeAllMatchesBySeason(
+    @Param('id') id: string,
+    @Req() req,
+  ): Promise<any> {
+    req.on('close', () => this.footballAdminService.closePuppeteerBrowser());
     await this.footballAdminService.launchPuppeteerBrowser();
     let matches = [];
 

@@ -33,6 +33,7 @@ export class FootballAdminService {
   }
   async getPage(): Promise<puppeteer.Page> {
     let page = await this.browser.newPage();
+    await page.setViewport({ width: 1920, height: 1080 })
     await page.setRequestInterception(true);
     page.on('request', (req) => {
       if (
@@ -388,7 +389,7 @@ export class FootballAdminService {
       for (let matchesType of ['results', 'fixtures']) {
         let url = `https://www.flashscore.com/football/${season.league.country.name}/${season.name}/${matchesType}`;
 
-        page = await this.getPage();
+        page = await this.browser.newPage();
         //remove cookies consent banner
         await page.setCookie({
           name: 'eupubconsent-v2',
@@ -412,7 +413,7 @@ export class FootballAdminService {
           }
           console.log('more found');
           await page.click('.event__more');
-          await page.waitForNetworkIdle();
+          await page.waitForNetworkIdle()
         }
 
         ids.push(
@@ -420,12 +421,12 @@ export class FootballAdminService {
             return elements.map((element) => element.getAttribute('id'));
           })),
         );
-        page.close();
+        await page.close();
       }
     } catch (err) {
       console.log('error:', err, season);
-    } finally {
       await page.close();
+    } finally {
       return { matchesFlashscoreIds: ids, season: season };
     }
   }
@@ -441,17 +442,52 @@ export class FootballAdminService {
         .map((flashscoreMatchId) =>
           this.scrapeMatchInfo(flashscoreMatchId, matchesBySeason.season),
         );
-      await Promise.all(matchesScrapping).then((matchesInfo) => {
-        matches.push(...matchesInfo);
-        console.log('matches: ' + matches.length);
-        console.timeLog('scrapeAndSaveAllMatches');
+      await Promise.all(matchesScrapping).then(async (matchesInfo) => {
+        for (let matchInfo of matchesInfo) {
+          matches.push(
+            await this.footballAdminRepository.findElseSaveMatch(
+              matchInfo.flashscoreMatchId,
+              matchInfo.round,
+              matchInfo.dateTimeMs,
+              matchInfo.homeTeamIds,
+              matchInfo.awayTeamIds,
+              matchInfo.goals,
+              matchInfo.season,
+              matchInfo.finished,
+            ),
+          );
+
+          console.log('matches: ' + matches.length);
+          console.timeLog('scrapeAndSaveAllMatches');
+        }
       });
     }
 
     console.timeEnd('scrapeAndSaveAllMatches');
   }
 
-  async scrapeMatchInfo(flashscoreMatchId: string, season: Season) {
+  async scrapeMatchInfo(
+    flashscoreMatchId: string,
+    season: Season,
+  ): Promise<{
+    flashscoreMatchId: string;
+    round: string;
+    dateTimeMs: number;
+    homeTeamIds: {
+      teamName: string;
+      teamFlashscoreId: string;
+    };
+    awayTeamIds: {
+      teamName: string;
+      teamFlashscoreId: string;
+    };
+    goals: {
+      time: string;
+      homeTeam: boolean;
+    }[];
+    season: Season;
+    finished: boolean;
+  }> {
     console.log('scrapping : ' + flashscoreMatchId);
     let matchInfo = null;
     const page = await this.browser.newPage();
@@ -494,7 +530,7 @@ export class FootballAdminService {
         },
       );
 
-      let homeTeam = await page.$eval('.duelParticipant__home', (element) => {
+      let homeTeamIds = await page.$eval('.duelParticipant__home', (element) => {
         let teamInfo = element
           .querySelector('a.participant__participantName')
           .getAttribute('href')
@@ -504,7 +540,7 @@ export class FootballAdminService {
           teamFlashscoreId: teamInfo[3],
         };
       });
-      let awayTeam = await page.$eval('.duelParticipant__away', (element) => {
+      let awayTeamIds = await page.$eval('.duelParticipant__away', (element) => {
         let teamInfo = element
           .querySelector('a.participant__participantName')
           .getAttribute('href')
@@ -544,10 +580,11 @@ export class FootballAdminService {
       }
 
       matchInfo = {
+        flashscoreMatchId,
         round,
         dateTimeMs,
-        homeTeam,
-        awayTeam,
+        homeTeamIds,
+        awayTeamIds,
         goals,
         season,
         finished,

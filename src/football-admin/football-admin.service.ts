@@ -381,21 +381,20 @@ export class FootballAdminService {
     console.timeEnd('scrapeAllSeasons');
   }
 
-  async scrapeMatchesIds(season: Season) {
-    let page:puppeteer.Page ;
+  async scrapeMatchesFlashscoreIds(season: Season) {
+    let page: puppeteer.Page;
     let ids = [];
     try {
       for (let matchesType of ['results', 'fixtures']) {
         let url = `https://www.flashscore.com/football/${season.league.country.name}/${season.name}/${matchesType}`;
 
-        page= await this.getPage()
+        page = await this.getPage();
         //remove cookies consent banner
         await page.setCookie({
           name: 'eupubconsent-v2',
           value: 'true',
           domain: 'www.flashscore.com',
         });
-
 
         await page.goto(url, {
           waitUntil: 'networkidle2',
@@ -421,18 +420,143 @@ export class FootballAdminService {
             return elements.map((element) => element.getAttribute('id'));
           })),
         );
-        page.close()
+        page.close();
       }
     } catch (err) {
       console.log('error:', err, season);
     } finally {
       await page.close();
-      return { matchesIds: ids, season: season };
+      return { matchesFlashscoreIds: ids, season: season };
     }
   }
 
   async scrapeAndSaveAllMatches(season: Season) {
-    let ids = await this.scrapeMatchesIds(season);
-    console.log(ids.matchesIds.length);
+    console.time('scrapeAndSaveAllMatches');
+    let matchesBySeason = await this.scrapeMatchesFlashscoreIds(season);
+    let maximumMatchesParallelScrapping = 20;
+    let matches = [];
+    while (matchesBySeason.matchesFlashscoreIds.length > 0) {
+      let matchesScrapping = matchesBySeason.matchesFlashscoreIds
+        .splice(0, maximumMatchesParallelScrapping)
+        .map((flashscoreMatchId) =>
+          this.scrapeMatchInfo(flashscoreMatchId, matchesBySeason.season),
+        );
+      await Promise.all(matchesScrapping).then((matchesInfo) => {
+        matches.push(...matchesInfo);
+        console.log('matches: ' + matches.length);
+        console.timeLog('scrapeAndSaveAllMatches');
+      });
+    }
+
+    console.timeEnd('scrapeAndSaveAllMatches');
+  }
+
+  async scrapeMatchInfo(flashscoreMatchId: string, season: Season) {
+    console.log('scrapping : ' + flashscoreMatchId);
+    let matchInfo = null;
+    const page = await this.browser.newPage();
+    try {
+      let url = `https://www.flashscore.com/match/${flashscoreMatchId.slice(
+        4,
+      )}`;
+
+      await page.goto(url, {
+        waitUntil: 'networkidle2',
+        timeout: 0,
+      });
+
+      let round = await page.$eval('.tournamentHeader__country', (element) =>
+        element
+          .querySelector('a')
+          .textContent.replace(/[^-]*-/, '')
+          .trim(),
+      );
+
+      let dateTimeMs = await page.$eval(
+        '.duelParticipant__startTime',
+        (element) => {
+          let dateTimeString = element.querySelector('div').textContent;
+          let date = dateTimeString.split(' ')[0].split('.');
+          let time = dateTimeString.split(' ')[1].split(':');
+          let hours = time[0],
+            minutes = time[1];
+          let days = date[0],
+            month = date[1],
+            year = date[2];
+
+          return new Date(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(days),
+            parseInt(hours),
+            parseInt(minutes),
+          ).getTime();
+        },
+      );
+
+      let homeTeam = await page.$eval('.duelParticipant__home', (element) => {
+        let teamInfo = element
+          .querySelector('a.participant__participantName')
+          .getAttribute('href')
+          .split('/');
+        return {
+          teamName: teamInfo[2],
+          teamFlashscoreId: teamInfo[3],
+        };
+      });
+      let awayTeam = await page.$eval('.duelParticipant__away', (element) => {
+        let teamInfo = element
+          .querySelector('a.participant__participantName')
+          .getAttribute('href')
+          .split('/');
+        return {
+          teamName: teamInfo[2],
+          teamFlashscoreId: teamInfo[3],
+        };
+      });
+      let goals = [];
+      let finished = false;
+
+      if (
+        await page.$eval(
+          '.detailScore__status',
+          (element) => element.textContent == 'Finished',
+        )
+      ) {
+        finished = true;
+        goals = await page.$$eval('.smv__incident', (incidents) => {
+          let scoreIncidents = incidents.filter(
+            (incident) =>
+              incident.querySelector('.smv__incidentHomeScore') != null ||
+              incident.querySelector('.smv__incidentAwayScore') != null,
+          );
+
+          return scoreIncidents.map((scoreIncident) => {
+            let time = scoreIncident
+              .querySelector('.smv__timeBox')
+              .textContent.slice(0, -1);
+            let homeTeam = false;
+            if (scoreIncident.querySelector('.smv__incidentHomeScore') != null)
+              homeTeam = true;
+            return { time, homeTeam };
+          });
+        });
+      }
+
+      matchInfo = {
+        round,
+        dateTimeMs,
+        homeTeam,
+        awayTeam,
+        goals,
+        season,
+        finished,
+      };
+    } catch (err) {
+      console.log('error:', flashscoreMatchId, err);
+    } finally {
+      await page.close();
+      return matchInfo;
+    }
   }
 }

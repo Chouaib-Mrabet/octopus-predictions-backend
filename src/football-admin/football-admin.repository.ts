@@ -213,6 +213,5 @@ export class FootballAdminRepository {
       return null;
     }
   }
-  async findElseSaveMatch() {
-  }
+  async findElseSaveMatch() {}
 }

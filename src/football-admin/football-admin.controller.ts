@@ -1,16 +1,25 @@
-import { Controller, Get, Req } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Param,
+  Req,
+} from '@nestjs/common';
 import { Country } from 'src/schemas/country.schema';
 import { FootballAdminService } from './football-admin.service';
-import { Season } from 'src/schemas/season.schema';
+import { Season, SeasonDocument } from 'src/schemas/season.schema';
 import { FootballAdminRepository } from './football-admin.repository';
 import { Team } from 'src/schemas/team.schema';
 import { League } from 'src/schemas/league.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
 @Controller('football-admin')
 export class FootballAdminController {
   constructor(
     private readonly footballAdminService: FootballAdminService,
     private readonly footballAdminRepository: FootballAdminRepository,
+    @InjectModel(Season.name) private seasonModel: Model<SeasonDocument>,
   ) {}
 
   @Get('scrapeCountries')
@@ -74,19 +83,32 @@ export class FootballAdminController {
     await this.footballAdminService.launchPuppeteerBrowser();
     let seasons: Season[] = [];
     try {
-      await this.footballAdminService.scrapeAndSaveAllSeasons()
+      await this.footballAdminService.scrapeAndSaveAllSeasons();
     } catch (err) {
       console.log(err);
     } finally {
       await this.footballAdminService.closePuppeteerBrowser();
+      return seasons;
     }
-
-    return seasons;
   }
 
-  @Get('scrapeMatchesBySeason')
-  async scrapeMatchesBySeason(): Promise<any> {
+  @Get('scrapeAllMatchesBySeason/:id')
+  async scrapeAllMatchesBySeason(@Param('id') id: string): Promise<any> {
+    await this.footballAdminService.launchPuppeteerBrowser();
+    let matches = [];
 
-    this.footballAdminService.scrapeAndSaveAllMatches(null)
+    try {
+      let season = await this.seasonModel
+        .findOne({ _id: id })
+        .populate({ path: 'league', populate: { path: 'country' } });
+
+      if (!season) throw new BadRequestException("season doesn't exist .");
+      await this.footballAdminService.scrapeAndSaveAllMatches(season);
+    } catch (err) {
+      console.log('errro:', err);
+    } finally {
+      await this.footballAdminService.closePuppeteerBrowser();
+      return matches;
+    }
   }
 }

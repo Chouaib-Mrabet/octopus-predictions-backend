@@ -381,7 +381,58 @@ export class FootballAdminService {
     console.timeEnd('scrapeAllSeasons');
   }
 
-  async scrapeAndSaveAllMatches(season:Season){
-    await this.footballAdminRepository.findElseSaveMatch()
+  async scrapeMatchesIds(season: Season) {
+    let page:puppeteer.Page ;
+    let ids = [];
+    try {
+      for (let matchesType of ['results', 'fixtures']) {
+        let url = `https://www.flashscore.com/football/${season.league.country.name}/${season.name}/${matchesType}`;
+
+        page= await this.getPage()
+        //remove cookies consent banner
+        await page.setCookie({
+          name: 'eupubconsent-v2',
+          value: 'true',
+          domain: 'www.flashscore.com',
+        });
+
+
+        await page.goto(url, {
+          waitUntil: 'networkidle2',
+          timeout: 0,
+        });
+
+        let showMoreAvailable = true;
+        while (showMoreAvailable) {
+          try {
+            await page.waitForSelector('.event__more', { timeout: 1000 });
+          } catch (err) {
+            console.log('not found');
+            showMoreAvailable = false;
+            continue;
+          }
+          console.log('more found');
+          await page.click('.event__more');
+          await page.waitForNetworkIdle();
+        }
+
+        ids.push(
+          ...(await page.$$eval('.event__match', (elements) => {
+            return elements.map((element) => element.getAttribute('id'));
+          })),
+        );
+        page.close()
+      }
+    } catch (err) {
+      console.log('error:', err, season);
+    } finally {
+      await page.close();
+      return { matchesIds: ids, season: season };
+    }
+  }
+
+  async scrapeAndSaveAllMatches(season: Season) {
+    let ids = await this.scrapeMatchesIds(season);
+    console.log(ids.matchesIds.length);
   }
 }

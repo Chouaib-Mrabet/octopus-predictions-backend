@@ -9,6 +9,7 @@ import { Team, TeamDocument } from 'src/schemas/team.schema';
 import { Sport, SportDocument } from 'src/schemas/sport.schema';
 import { Logo, LogoDocument } from 'src/schemas/logo.schema';
 import { Season, SeasonDocument } from 'src/schemas/season.schema';
+import { Match, MatchDocument } from 'src/schemas/match.schema';
 const axios = require('axios').default;
 
 @Injectable()
@@ -23,6 +24,7 @@ export class FootballAdminRepository {
     @InjectModel(Sport.name) private sportModel: Model<SportDocument>,
     @InjectModel(Logo.name) private logoModel: Model<LogoDocument>,
     @InjectModel(Season.name) private seasonModel: Model<SeasonDocument>,
+    @InjectModel(Match.name) private matchModel: Model<MatchDocument>,
   ) {}
 
   async findElseSaveCountries(countriesNames: string[]): Promise<Country[]> {
@@ -210,5 +212,7 @@ export class FootballAdminRepository {
       console.log(error, seasonName);
       return null;
     }
+  }
+  async findElseSaveMatch() {
   }
 }

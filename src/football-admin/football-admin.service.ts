@@ -380,4 +380,8 @@ export class FootballAdminService {
     }
     console.timeEnd('scrapeAllSeasons');
   }
+
+  async scrapeAndSaveAllMatches(season:Season){
+    await this.footballAdminRepository.findElseSaveMatch()
+  }
 }

@@ -83,4 +83,10 @@ export class FootballAdminController {
 
     return seasons;
   }
+
+  @Get('scrapeMatchesBySeason')
+  async scrapeMatchesBySeason(): Promise<any> {
+
+    this.footballAdminService.scrapeAndSaveAllMatches(null)
+  }
 }

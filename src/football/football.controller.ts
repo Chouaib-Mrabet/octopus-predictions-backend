@@ -139,8 +139,17 @@ export class FootballController {
     return matchesBySeason;
   }
 
+  // List of matches per team :
+  @Get('/:teamId/teammatches')
+  @ApiOperation({ summary: 'Get Matches by Team Id' })
+  async getMatchesByTeamId(@Param('teamId') teamId: string): Promise<Match[]> {
+    let matchesByTeam = await this.footballService.getMatchesByTeam(teamId);
+
+    return matchesByTeam;
+  }
+
   // List of Seasons per League :
-  @Get('/:seasonId/matches')
+  @Get('/:LeagueId/season')
   @ApiOperation({ summary: 'Get Seasons by League Id' })
   async getSeasonsByLeagueId(
     @Param('LeagueId') LeagueId: string,

@@ -138,4 +138,12 @@ export class FootballService {
 
     return seasons;
   }
+
+  async getMatchesByTeam(teamId: string): Promise<Match[]> {
+    let matches = await this.matchModel.find({
+      $or: [{ homeTeam: teamId }, { awayTeam: teamId }],
+    });
+
+    return matches;
+  }
 }

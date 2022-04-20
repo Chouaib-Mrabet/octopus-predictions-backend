@@ -1,9 +1,5 @@
 import { Season, SeasonDocument } from './../schemas/season.schema';
 import { Match, MatchDocument } from 'src/schemas/match.schema';
-import {
-  FavoriteGame,
-  FavoriteGameDocument,
-} from './../schemas/favorite-game.schema';
 import { Team, TeamDocument } from './../schemas/team.schema';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -24,9 +20,6 @@ export class FootballService {
     @InjectModel(Match.name) private matchModel: Model<MatchDocument>,
     @InjectModel(Team.name) private teamModel: Model<TeamDocument>,
     @InjectModel(Logo.name) private logoModel: Model<LogoDocument>,
-
-    @InjectModel(FavoriteGame.name)
-    private favoriteGameModel: Model<FavoriteGameDocument>,
   ) {}
 
   async getCountryById(id: string): Promise<Country> {
@@ -93,6 +86,12 @@ export class FootballService {
 
   async getFlag(id: string): Promise<Flag> {
     return await this.flagModel.findOne({ _id: id });
+  }
+
+  async getMatchById(id: string): Promise<Match> {
+    let match = this.matchModel.findOne({ _id: id });
+
+    return match;
   }
 
   async getMatches(

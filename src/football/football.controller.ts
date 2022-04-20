@@ -5,7 +5,6 @@ import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Country } from 'src/schemas/country.schema';
 import { League } from 'src/schemas/league.schema';
 import { FootballService } from './football.service';
-import { Game } from 'src/schemas/game.schema';
 import { PaginationParams } from 'src/dto/pagination-params';
 import { Match } from 'src/schemas/match.schema';
 
@@ -35,6 +34,14 @@ export class FootballController {
     let matches = await this.footballService.getMatches(skip, limit);
 
     return matches;
+  }
+  // Get Match by id :
+  @Get('/match/:id')
+  @ApiOperation({ summary: 'Get Match by id' })
+  async getMatch(@Param('id') id: string): Promise<Match> {
+    let match = await this.footballService.getMatchById(id);
+
+    return match;
   }
 
   // Get League by id :

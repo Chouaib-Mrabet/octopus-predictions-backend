@@ -1,10 +1,9 @@
-import { Length } from 'class-validator';
+import { Season, SeasonDocument } from './../schemas/season.schema';
+import { Match, MatchDocument } from 'src/schemas/match.schema';
 import {
   FavoriteGame,
   FavoriteGameDocument,
 } from './../schemas/favorite-game.schema';
-import { User } from './../schemas/user.schema';
-import { Game, GameDocument } from './../schemas/game.schema';
 import { Team, TeamDocument } from './../schemas/team.schema';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -13,17 +12,19 @@ import { Model } from 'mongoose';
 import { League, LeagueDocument } from 'src/schemas/league.schema';
 import { Logo, LogoDocument } from 'src/schemas/logo.schema';
 import { Flag, FlagDocument } from 'src/schemas/flag.schema';
-import { count } from 'console';
 
 @Injectable()
 export class FootballService {
   constructor(
     @InjectModel(Country.name) private countryModel: Model<CountryDocument>,
+    @InjectModel(Flag.name) private flagModel: Model<FlagDocument>,
+
     @InjectModel(League.name) private leagueModel: Model<LeagueDocument>,
+    @InjectModel(Season.name) private seasonModel: Model<SeasonDocument>,
+    @InjectModel(Match.name) private matchModel: Model<MatchDocument>,
     @InjectModel(Team.name) private teamModel: Model<TeamDocument>,
     @InjectModel(Logo.name) private logoModel: Model<LogoDocument>,
-    @InjectModel(Flag.name) private flagModel: Model<FlagDocument>,
-    @InjectModel(Game.name) private gameModel: Model<GameDocument>,
+
     @InjectModel(FavoriteGame.name)
     private favoriteGameModel: Model<FavoriteGameDocument>,
   ) {}
@@ -94,65 +95,47 @@ export class FootballService {
     return await this.flagModel.findOne({ _id: id });
   }
 
-  async getGamesByLeague(leagueId: string): Promise<any[]> {
-    return await this.gameModel
-      .find({ league: leagueId })
-      .populate('team1')
-      .populate('team2');
-  }
-
-  async getGames(documentsToSkip = 0, limitOfDocuments?: number): Promise<any> {
-    if (limitOfDocuments) {
-      const findQuery = this.gameModel
-        .find()
-        .skip(documentsToSkip)
-        .populate('team1')
-        .populate('team2')
-        .limit(limitOfDocuments);
-
-      const data = await findQuery;
-      const totalItems = await this.gameModel.count();
-      const itemCount = data.length;
-
-      return { data, totalItems, itemCount };
-    } else {
-      const findQuery = this.gameModel
-        .find()
-        .skip(documentsToSkip)
-        .populate('team1')
-        .populate('team2');
-
-      const data = await findQuery;
-      const totalItems = await this.gameModel.count();
-      const itemCount = data.length;
-
-      return { data, totalItems, itemCount };
-    }
-  }
-
-  async testpagination(
+  async getMatches(
     documentsToSkip = 0,
     limitOfDocuments?: number,
   ): Promise<any> {
     if (limitOfDocuments) {
-      const findQuery = this.teamModel
+      const findQuery = this.matchModel
         .find()
         .skip(documentsToSkip)
+        .populate('homeTeam')
+        .populate('awayTeam')
         .limit(limitOfDocuments);
 
       const data = await findQuery;
-      const totalItems = await this.teamModel.count();
+      const totalItems = await this.matchModel.count();
       const itemCount = data.length;
 
       return { data, totalItems, itemCount };
     } else {
-      const findQuery = this.teamModel.find().skip(documentsToSkip);
+      const findQuery = this.matchModel
+        .find()
+        .skip(documentsToSkip)
+        .populate('homeTeam')
+        .populate('awayTeam');
 
       const data = await findQuery;
-      const totalItems = await this.teamModel.count();
+      const totalItems = await this.matchModel.count();
       const itemCount = data.length;
 
-      return { data, itemCount, totalItems };
+      return { data, totalItems, itemCount };
     }
+  }
+
+  async getMatchesBySeason(seasonId: string): Promise<Match[]> {
+    let matches = await this.matchModel.find({ season: seasonId });
+
+    return matches;
+  }
+
+  async getSeasonsByLeague(leagueId: string): Promise<Season[]> {
+    let seasons = await this.seasonModel.find({ league: leagueId });
+
+    return seasons;
   }
 }

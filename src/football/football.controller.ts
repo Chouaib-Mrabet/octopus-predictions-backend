@@ -1,3 +1,4 @@
+import { Season } from './../schemas/season.schema';
 import { Controller, Get, Header, Param, Query, Res } from '@nestjs/common';
 import { Team } from './../schemas/team.schema';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
@@ -6,19 +7,12 @@ import { League } from 'src/schemas/league.schema';
 import { FootballService } from './football.service';
 import { Game } from 'src/schemas/game.schema';
 import { PaginationParams } from 'src/dto/pagination-params';
+import { Match } from 'src/schemas/match.schema';
 
 @Controller('football')
 @ApiTags('football')
 export class FootballController {
   constructor(private readonly footballService: FootballService) {}
-
-  // @Get('testpagination')
-  // async testpagination(
-  //   @Query() { skip, limit }: PaginationParams,
-  // ): Promise<Team[]> {
-  //   let teams = await this.footballService.testpagination(skip, limit);
-  //   return teams;
-  // }
 
   // List of All leagues :
   @Get('leagues')
@@ -26,6 +20,21 @@ export class FootballController {
   async getLeagues(): Promise<League[]> {
     let leagues = await this.footballService.getLeagues();
     return leagues;
+  }
+
+  // List of Matches :
+  @Get('/matches')
+  @ApiOperation({ summary: 'Get Matches' })
+  @ApiQuery({ name: 'skip', type: Number, required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
+  async getMatches(
+    @Query() { skip, limit }: PaginationParams,
+  ): Promise<Match[]> {
+    // 100 max ??:
+    limit = limit > 100 ? 100 : limit;
+    let matches = await this.footballService.getMatches(skip, limit);
+
+    return matches;
   }
 
   // Get League by id :
@@ -117,28 +126,29 @@ export class FootballController {
     return teamsByLeague;
   }
 
-  // Games :
-  // List of games per league :
-  // TODO : Add Filters && Pagination
-  @Get('/:leagueId/games')
-  @ApiOperation({ summary: 'Get Games by League Id' })
-  async getGamesByLeagueId(
-    @Param('leagueId') leagueId: string,
-  ): Promise<Team[]> {
-    let gamesByLeague = await this.footballService.getGamesByLeague(leagueId);
+  // List of matches per Season :
+  @Get('/:seasonId/matches')
+  @ApiOperation({ summary: 'Get Matches by Season Id' })
+  async getMatchesBySeasonId(
+    @Param('seasonId') seasonId: string,
+  ): Promise<Match[]> {
+    let matchesBySeason = await this.footballService.getMatchesBySeason(
+      seasonId,
+    );
 
-    return gamesByLeague;
+    return matchesBySeason;
   }
 
-  @Get('/games')
-  @ApiOperation({ summary: 'Get Games ' })
-  @ApiQuery({ name: 'skip', type: Number, required: false })
-  @ApiQuery({ name: 'limit', type: Number, required: false })
-  async getGames(@Query() { skip, limit }: PaginationParams): Promise<Game[]> {
-    // 100 max ??:
-    limit = limit > 100 ? 100 : limit;
-    let games = await this.footballService.getGames(skip, limit);
+  // List of Seasons per League :
+  @Get('/:seasonId/matches')
+  @ApiOperation({ summary: 'Get Seasons by League Id' })
+  async getSeasonsByLeagueId(
+    @Param('LeagueId') LeagueId: string,
+  ): Promise<Season[]> {
+    let seasonsByLeague = await this.footballService.getSeasonsByLeague(
+      LeagueId,
+    );
 
-    return games;
+    return seasonsByLeague;
   }
 }

@@ -1,3 +1,5 @@
+import { Season, Seasonschema } from './../schemas/season.schema';
+import { Match, MatchSchema } from 'src/schemas/match.schema';
 import { Game, GameSchema } from './../schemas/game.schema';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -20,7 +22,9 @@ import {
     MongooseModule.forFeature([{ name: Team.name, schema: TeamSchema }]),
     MongooseModule.forFeature([{ name: Logo.name, schema: Logoschema }]),
     MongooseModule.forFeature([{ name: Flag.name, schema: Flagschema }]),
-    MongooseModule.forFeature([{ name: Game.name, schema: GameSchema }]),
+    MongooseModule.forFeature([{ name: Match.name, schema: MatchSchema }]),
+    MongooseModule.forFeature([{ name: Season.name, schema: Seasonschema }]),
+
     MongooseModule.forFeature([
       { name: FavoriteGame.name, schema: FavoriteGameSchema },
     ]),

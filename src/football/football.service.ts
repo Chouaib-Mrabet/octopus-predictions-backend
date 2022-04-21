@@ -145,4 +145,22 @@ export class FootballService {
 
     return matches;
   }
+
+  async getLeaguesByTeamId(teamId: string): Promise<League[]> {
+    let matches = await this.matchModel.find({
+      $or: [{ homeTeam: teamId }, { awayTeam: teamId }],
+    });
+    let leagues = [];
+
+    for (let i = 0; i < matches.length; i++) {
+      let season = await this.seasonModel.findOne({ _id: matches[i].season });
+      let league = await this.leagueModel.findOne({ _id: season.league });
+
+      if (leagues.findIndex((league) => league._id === league._id) == -1) {
+        leagues.push(league);
+      }
+    }
+
+    return leagues;
+  }
 }

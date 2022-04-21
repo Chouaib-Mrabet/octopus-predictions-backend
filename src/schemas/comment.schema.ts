@@ -1,8 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Type } from 'class-transformer';
 import mongoose from 'mongoose';
-import { Document, Types } from 'mongoose';
-import { Game } from './game.schema';
+import { Document } from 'mongoose';
 import { User } from './user.schema';
 
 export type CommentDocument = Comment & Document;
@@ -22,14 +21,6 @@ export class Comment {
   })
   @Type(() => User)
   user: User;
-
-  @Prop({
-    type: mongoose.Schema.Types.ObjectId,
-    ref: Game.name,
-    required: true,
-  })
-  @Type(() => Game)
-  game: Game;
 
   @Prop({ default: Date.now })
   createdAt!: Date;

@@ -21,6 +21,15 @@ export class FootballController {
     return leagues;
   }
 
+  // Leagues By Team:
+  @Get('leagues/:teamId')
+  @ApiOperation({ summary: 'Get Leagues By team' })
+  async getLeaguesByTeam(@Param('teamId') teamId: string): Promise<League[]> {
+    let leagues = await this.footballService.getLeaguesByTeamId(teamId);
+
+    return leagues;
+  }
+
   // List of Matches :
   @Get('/matches')
   @ApiOperation({ summary: 'Get Matches' })

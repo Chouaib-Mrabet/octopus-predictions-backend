@@ -164,6 +164,30 @@ export class FootballController {
     return matchesByTeam;
   }
 
+  // List of matches per Season and Team :
+  @Get('/:seasonId/matches/:teamId')
+  @ApiOperation({ summary: 'Get Matches by Season Id' })
+  async getMatchesBySeasonAndTeamIds(
+    @Param('seasonId') seasonId: string,
+    @Param('teamId') teamId: string,
+  ): Promise<Match[]> {
+    let matchesBySeason = await this.footballService.getMatchesBySeason(
+      seasonId,
+    );
+    let matches = [];
+
+    for (let i = 0; i < matchesBySeason.length; i++) {
+      if (
+        matchesBySeason[i].homeTeam.toString() === teamId ||
+        matchesBySeason[i].awayTeam.toString() === teamId
+      ) {
+        matches.push(matchesBySeason[i]);
+      }
+    }
+
+    return matches;
+  }
+
   // List of Seasons per League :
   @Get('/:LeagueId/season')
   @ApiOperation({ summary: 'Get Seasons by League Id' })

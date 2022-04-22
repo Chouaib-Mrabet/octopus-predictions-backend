@@ -171,19 +171,10 @@ export class FootballController {
     @Param('seasonId') seasonId: string,
     @Param('teamId') teamId: string,
   ): Promise<Match[]> {
-    let matchesBySeason = await this.footballService.getMatchesBySeason(
+    let matches = await this.footballService.getMatchesBySeasonAndTeam(
       seasonId,
+      teamId,
     );
-    let matches = [];
-
-    for (let i = 0; i < matchesBySeason.length; i++) {
-      if (
-        matchesBySeason[i].homeTeam.toString() === teamId ||
-        matchesBySeason[i].awayTeam.toString() === teamId
-      ) {
-        matches.push(matchesBySeason[i]);
-      }
-    }
 
     return matches;
   }

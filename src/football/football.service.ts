@@ -146,6 +146,20 @@ export class FootballService {
     return matches;
   }
 
+  async getMatchesBySeasonAndTeam(
+    seasonId: string,
+    teamId: string,
+  ): Promise<Match[]> {
+    let matches = await this.matchModel
+      .find({
+        season: seasonId,
+        $or: [{ homeTeam: teamId }, { awayTeam: teamId }],
+      })
+      .populate('homeTeam')
+      .populate('awayTeam');
+    return matches;
+  }
+
   async getLeaguesByTeamId(teamId: string): Promise<League[]> {
     console.time('getLeaguesByTeamId');
     let matches = await this.matchModel

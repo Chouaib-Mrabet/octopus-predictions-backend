@@ -8,7 +8,7 @@ import { Country } from './country.schema';
 export type LeagueDocument = League & Document;
 
 @Schema({ timestamps: true })
-export class League {
+export class League extends Document {
   @Prop({
     required: true,
     index: true,

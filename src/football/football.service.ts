@@ -147,19 +147,22 @@ export class FootballService {
   }
 
   async getLeaguesByTeamId(teamId: string): Promise<League[]> {
-    let matches = await this.matchModel.find({
-      $or: [{ homeTeam: teamId }, { awayTeam: teamId }],
-    });
+    console.time('getLeaguesByTeamId');
+    let matches = await this.matchModel
+      .find({
+        $or: [{ homeTeam: teamId }, { awayTeam: teamId }],
+      })
+      .populate({ path: 'season', populate: { path: 'league' } });
     let leagues = [];
 
     for (let i = 0; i < matches.length; i++) {
-      let season = await this.seasonModel.findOne({ _id: matches[i].season });
-      let league = await this.leagueModel.findOne({ _id: season.league });
-
-      if (leagues.findIndex((league) => league._id === league._id) == -1) {
-        leagues.push(league);
+      let newLeague = matches[i].season.league;
+      if (leagues.findIndex((league) => league._id === newLeague._id) == -1) {
+        leagues.push(newLeague);
       }
     }
+
+    console.timeEnd('getLeaguesByTeamId');
 
     return leagues;
   }

@@ -45,9 +45,10 @@ export class FootballAdminController {
   }
 
   @Get('scrapeAllLeagues')
-  async scrapeAllLeagues(): Promise<League[]> {
+  async scrapeAllLeagues(@Req() req): Promise<League[]> {
     console.time('scrapeAllLeagues');
     await this.footballAdminService.launchPuppeteerBrowser();
+    req.on('close', () => this.footballAdminService.closePuppeteerBrowser());
     let leagues = [];
     try {
       leagues = await this.footballAdminService.scrapeAndSaveAllLeagues();

@@ -33,7 +33,7 @@ export class FootballAdminService {
   }
   async getPage(): Promise<puppeteer.Page> {
     let page = await this.browser.newPage();
-    await page.setViewport({ width: 1920, height: 1080 })
+    await page.setViewport({ width: 1920, height: 1080 });
     await page.setRequestInterception(true);
     page.on('request', (req) => {
       if (
@@ -104,7 +104,7 @@ export class FootballAdminService {
 
   async scrapeLeagues(
     country: Country,
-  ): Promise<{ leaguesNames: string[]; country: Country }> {
+  ): Promise<{ leagueName: string; country: Country }[]> {
     console.log(country.name);
     let page = await this.getPage();
 
@@ -127,37 +127,87 @@ export class FootballAdminService {
     if (leaguesNames)
       leaguesNames = leaguesNames.filter((leagueName) => leagueName != null);
 
+    let leaguesInfo = leaguesNames.map((leagueName) => ({
+      leagueName: leagueName,
+      country: country,
+    }));
+
     await page.close();
 
-    return { leaguesNames, country };
+    return leaguesInfo;
   }
 
   async scrapeAndSaveAllLeagues(): Promise<League[]> {
-    let leagues: League[] = [];
+    let leagues: any[] = [];
     let countries = await this.footballAdminRepository.getCountries();
-    let maximumParallelScrapping = 1;
+    let maximumParallelCountriesScrapping = 10;
+    let maximumParallelLeaguesScrapping = 15;
 
     while (countries.length > 0) {
-      await Promise.all(
-        countries
-          .splice(0, maximumParallelScrapping)
-          .map((country) => this.scrapeLeagues(country)),
-      ).then(async (leaguesByCountry) => {
+      let countriesScrapping = countries
+        .splice(0, maximumParallelCountriesScrapping)
+        .map((country) => this.scrapeLeagues(country));
+      await Promise.all(countriesScrapping).then(async (leaguesByCountry) => {
+        let allLeagues: {
+          leagueName: string;
+          country: Country;
+        }[] = [];
         for (let leaguesOfOneCountry of leaguesByCountry) {
-          for (let league of leaguesOfOneCountry.leaguesNames) {
-            leagues.push(
-              await this.footballAdminRepository.findElseSaveLeague(
-                league,
-                leaguesOfOneCountry.country,
-              ),
+          allLeagues.push(...leaguesOfOneCountry);
+        }
+        while (allLeagues.length > 0) {
+          let leaguesScrapping = allLeagues
+            .splice(0, maximumParallelLeaguesScrapping)
+            .map((league) =>
+              this.scrapeLeagueInfo(league.leagueName, league.country),
             );
-            console.log(league + ' : ' + leaguesOfOneCountry.country.name);
-          }
+          await Promise.all(leaguesScrapping).then(async (leaguesInfo) => {
+            for (let leagueInfo of leaguesInfo) {
+              leagues.push(
+                await this.footballAdminRepository.findElseSaveLeague(
+                  leagueInfo.leagueName,
+                  leagueInfo.country,
+                  leagueInfo.logoFlashscoreId,
+                ),
+              );
+            }
+          });
         }
       });
     }
 
     return leagues;
+  }
+
+  async scrapeLeagueInfo(
+    leagueName: string,
+    country: Country,
+  ): Promise<{
+    leagueName: string;
+    country: Country;
+    logoFlashscoreId: string;
+  }> {
+    let logoFlashscoreId = null;
+    let page = await this.getPage();
+    try {
+      console.log('scrapping : ' + leagueName);
+      let url = `https://www.flashscore.com/football/${country.name}/${leagueName}/`;
+      await page.goto(url, {
+        waitUntil: 'load',
+        timeout: 0,
+      });
+      logoFlashscoreId = await page.$eval(
+        '.heading__logo',
+        (element: HTMLElement) =>
+          element.style.backgroundImage.slice(5, -6).split('/')[4],
+      );
+    } catch (err) {
+      console.log(err, country.name, leagueName);
+    }
+
+    await page.close();
+
+    return { leagueName, country, logoFlashscoreId };
   }
 
   async scrapeAndSaveAllTeams(): Promise<Team[]> {
@@ -413,7 +463,7 @@ export class FootballAdminService {
           }
           console.log('more found');
           await page.click('.event__more');
-          await page.waitForNetworkIdle()
+          await page.waitForNetworkIdle();
         }
 
         ids.push(
@@ -530,26 +580,32 @@ export class FootballAdminService {
         },
       );
 
-      let homeTeamIds = await page.$eval('.duelParticipant__home', (element) => {
-        let teamInfo = element
-          .querySelector('a.participant__participantName')
-          .getAttribute('href')
-          .split('/');
-        return {
-          teamName: teamInfo[2],
-          teamFlashscoreId: teamInfo[3],
-        };
-      });
-      let awayTeamIds = await page.$eval('.duelParticipant__away', (element) => {
-        let teamInfo = element
-          .querySelector('a.participant__participantName')
-          .getAttribute('href')
-          .split('/');
-        return {
-          teamName: teamInfo[2],
-          teamFlashscoreId: teamInfo[3],
-        };
-      });
+      let homeTeamIds = await page.$eval(
+        '.duelParticipant__home',
+        (element) => {
+          let teamInfo = element
+            .querySelector('a.participant__participantName')
+            .getAttribute('href')
+            .split('/');
+          return {
+            teamName: teamInfo[2],
+            teamFlashscoreId: teamInfo[3],
+          };
+        },
+      );
+      let awayTeamIds = await page.$eval(
+        '.duelParticipant__away',
+        (element) => {
+          let teamInfo = element
+            .querySelector('a.participant__participantName')
+            .getAttribute('href')
+            .split('/');
+          return {
+            teamName: teamInfo[2],
+            teamFlashscoreId: teamInfo[3],
+          };
+        },
+      );
       let goals = [];
       let finished = false;
 

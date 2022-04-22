@@ -87,6 +87,7 @@ export class FootballAdminRepository {
   async findElseSaveLeague(
     leagueName: string,
     country: Country,
+    logoFlashscoreId: string,
   ): Promise<League> {
     let football = await this.sportModel.findOne({ name: 'football' });
     let existingLeague = await this.leagueModel.findOne({
@@ -99,6 +100,7 @@ export class FootballAdminRepository {
     let newLeague = new this.leagueModel({ name: leagueName });
     newLeague.country = country;
     newLeague.sport = football;
+    newLeague.logo = await this.findElseSaveLogo(logoFlashscoreId);
 
     await newLeague.save();
 
@@ -160,10 +162,23 @@ export class FootballAdminRepository {
     else
       logoUrl =
         'https://www.flashscore.com/res/image/empty-logo-team-share.gif';
-    logo.data = Buffer.from(
-      (await axios.get(logoUrl, { responseType: 'arraybuffer' })).data,
-      'utf-8',
-    );
+    try {
+      logo.data = Buffer.from(
+        (await axios.get(logoUrl, { responseType: 'arraybuffer' })).data,
+        'utf-8',
+      );
+    } catch (err) {
+      console.log(err);
+      logo.data = Buffer.from(
+        (
+          await axios.get(
+            'https://www.flashscore.com/res/image/empty-logo-team-share.gif',
+            { responseType: 'arraybuffer' },
+          )
+        ).data,
+        'utf-8',
+      );
+    }
     await logo.save();
 
     return logo;

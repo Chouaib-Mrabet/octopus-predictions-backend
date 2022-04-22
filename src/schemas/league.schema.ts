@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import { Document, Types } from 'mongoose';
 import { Type } from 'class-transformer';
 import { Country } from './country.schema';
+import { Logo } from './logo.schema';
 
 export type LeagueDocument = League & Document;
 
@@ -29,6 +30,9 @@ export class League extends Document {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Country.name,required:true })
   @Type(() => Country)
   country: Country;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Logo.name })
+  logo: Logo;
 }
 
 export const LeagueSchema = SchemaFactory.createForClass(League);

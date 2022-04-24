@@ -155,8 +155,12 @@ export class FootballService {
         season: seasonId,
         $or: [{ homeTeam: teamId }, { awayTeam: teamId }],
       })
+      .sort({
+        date: -1,
+      })
       .populate('homeTeam')
       .populate('awayTeam');
+
     return matches;
   }
 

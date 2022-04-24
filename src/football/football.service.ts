@@ -101,6 +101,7 @@ export class FootballService {
     if (limitOfDocuments) {
       const findQuery = this.matchModel
         .find()
+        .sort({ date: -1 })
         .skip(documentsToSkip)
         .populate('homeTeam')
         .populate('awayTeam')
@@ -114,6 +115,7 @@ export class FootballService {
     } else {
       const findQuery = this.matchModel
         .find()
+        .sort({ date: -1 })
         .skip(documentsToSkip)
         .populate('homeTeam')
         .populate('awayTeam');
@@ -126,10 +128,21 @@ export class FootballService {
     }
   }
 
-  async getMatchesBySeason(seasonId: string): Promise<Match[]> {
-    let matches = await this.matchModel.find({ season: seasonId });
-
-    return matches;
+  async getMatchesBySeason(seasonId: string, status: number): Promise<Match[]> {
+    if (status == 1) {
+      // All matches :
+      return await this.matchModel.find({ season: seasonId });
+    } else if (status == 2) {
+      // Finished Matches :
+      return await this.matchModel.find({
+        $and: [{ season: seasonId }, { finished: true }],
+      });
+    } else {
+      // Not Finished Matches :
+      return await this.matchModel.find({
+        $and: [{ season: seasonId }, { finished: false }],
+      });
+    }
   }
 
   async getSeasonsByLeague(leagueId: string): Promise<Season[]> {
@@ -139,9 +152,13 @@ export class FootballService {
   }
 
   async getMatchesByTeam(teamId: string): Promise<Match[]> {
-    let matches = await this.matchModel.find({
-      $or: [{ homeTeam: teamId }, { awayTeam: teamId }],
-    });
+    let matches = await this.matchModel
+      .find({
+        $or: [{ homeTeam: teamId }, { awayTeam: teamId }],
+      })
+      .sort({
+        date: -1,
+      });
 
     return matches;
   }

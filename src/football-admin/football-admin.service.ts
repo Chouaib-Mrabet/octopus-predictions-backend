@@ -354,10 +354,11 @@ export class FootballAdminService {
       );
 
       seasonsInfo = await page.$$eval('.archive__row', (rows) =>
-        rows.map((row) => {
+        rows.map((row, index) => {
           let finished = true;
           let winnerName = null;
           let winnerFlashscoreId = null;
+          let seasonName = '';
 
           if (row.querySelector('.archive__winner') != null) {
             if (
@@ -380,12 +381,24 @@ export class FootballAdminService {
             }
           }
 
-          return {
-            seasonName: row
+          if (index == 0) {
+            //for the current/last season flashscore doesn't add date (they use the league name directly)
+            seasonName = row
+              .querySelector('.archive__season')
+              .textContent.toLowerCase()
+              .trim()
+              .replace(/\s+/g, '-')
+              .replace(/\//g, '-');
+          } else {
+            seasonName = row
               .querySelector('.archive__season')
               .querySelector('.archive__text')
               .getAttribute('href')
-              .split('/')[3],
+              .split('/')[3];
+          }
+
+          return {
+            seasonName: seasonName,
             winnerFlashscoreId: winnerFlashscoreId,
             winnerName: winnerName,
             finished: finished,

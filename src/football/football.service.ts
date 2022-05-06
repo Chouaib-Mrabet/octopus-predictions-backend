@@ -89,7 +89,7 @@ export class FootballService {
   }
 
   async getMatchById(id: string): Promise<Match> {
-    let match = this.matchModel.findOne({ _id: id });
+    let match = this.matchModel.findOne({ _id: id }).populate({ path: 'season', populate: { path: 'league' } });
 
     return match;
   }

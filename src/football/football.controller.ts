@@ -49,7 +49,6 @@ export class FootballController {
   @ApiOperation({ summary: 'Get Match by id' })
   async getMatch(@Param('id') id: string): Promise<Match> {
     let match = await this.footballService.getMatchById(id);
-
     return match;
   }
 

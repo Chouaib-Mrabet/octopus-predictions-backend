@@ -176,7 +176,9 @@ export class FootballService {
         date: -1,
       })
       .populate('homeTeam')
-      .populate('awayTeam');
+      .populate('awayTeam')
+      .populate({ path: 'season', populate: { path: 'league' } });;
+
 
     return matches;
   }

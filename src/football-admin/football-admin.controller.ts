@@ -93,6 +93,23 @@ export class FootballAdminController {
     }
   }
 
+  @Get('scrapeAllSeasonsByLeague/:leagueId')
+  async scrapeAllSeasonsByLeague(
+    @Param('leagueId') leagueId: string,
+    @Req() req,
+  ): Promise<any> {
+    req.on('close', () => this.footballAdminService.closePuppeteerBrowser());
+
+    await this.footballAdminService.launchPuppeteerBrowser();
+    try {
+      await this.footballAdminService.scrapeAndSaveSeasonsOfOneLeague(leagueId);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      await this.footballAdminService.closePuppeteerBrowser();
+    }
+  }
+
   @Get('scrapeAllMatchesBySeason/:id')
   async scrapeAllMatchesBySeason(
     @Param('id') id: string,

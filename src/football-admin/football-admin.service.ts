@@ -345,6 +345,7 @@ export class FootballAdminService {
     let seasonsInfo = [];
 
     try {
+      
       await page.goto(
         `https://www.flashscore.com/football/${league.country.name}/${league.name}/archive`,
         {
@@ -411,6 +412,24 @@ export class FootballAdminService {
       await page.close();
       return { seasons: seasonsInfo, league: league };
     }
+  }
+
+  async scrapeAndSaveSeasonsOfOneLeague(leagueId:string) {
+    console.time(`scrapeSeasons of ${leagueId}`);
+
+    let league = await this.footballAdminRepository.getLeague(leagueId);
+    let seasonsInfo = (await this.scrapeSeasons(league)).seasons;
+    for (let season of seasonsInfo) {
+      await this.footballAdminRepository.findElseSaveSeason(
+        league,
+        season.seasonName,
+        season.winnerFlashscoreId,
+        season.winnerName,
+        season.finished,
+      );
+    }
+
+    console.timeEnd(`scrapeSeasons of ${leagueId}`);
   }
 
   async scrapeAndSaveAllSeasons() {

@@ -114,6 +114,9 @@ export class FootballAdminRepository {
   async getLeagues(): Promise<League[]> {
     return await this.leagueModel.find().populate('country');
   }
+  async getLeague(leagueId:string): Promise<League> {
+    return await this.leagueModel.findOne({ _id: leagueId }).populate('country');
+  }
 
   async getTeams(): Promise<Team[]> {
     return await this.teamModel.find().populate('logo');

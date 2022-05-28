@@ -5,6 +5,7 @@ import { Country } from 'src/schemas/country.schema';
 import { FootballAdminRepository } from './football-admin.repository';
 import { Team } from 'src/schemas/team.schema';
 import { Season } from 'src/schemas/season.schema';
+import { MatchDocument } from 'src/schemas/match.schema';
 
 @Injectable()
 export class FootballAdminService {
@@ -345,7 +346,6 @@ export class FootballAdminService {
     let seasonsInfo = [];
 
     try {
-      
       await page.goto(
         `https://www.flashscore.com/football/${league.country.name}/${league.name}/archive`,
         {
@@ -414,7 +414,7 @@ export class FootballAdminService {
     }
   }
 
-  async scrapeAndSaveSeasonsOfOneLeague(leagueId:string) {
+  async scrapeAndSaveSeasonsOfOneLeague(leagueId: string) {
     console.time(`scrapeSeasons of ${leagueId}`);
 
     let league = await this.footballAdminRepository.getLeague(leagueId);
@@ -683,5 +683,19 @@ export class FootballAdminService {
       await page.close();
       return matchInfo;
     }
+  }
+
+  async updateOutdatedMatches() {
+    let outdatedMacthes =
+      await this.footballAdminRepository.getOutdatedMatches();
+
+    for (let match of outdatedMacthes) {
+      let matchInfo = await this.scrapeMatchInfo(
+        match.flashscoreId,
+        match.season,
+      );
+      this.footballAdminRepository.updateOutdatedMatch(match['id'],matchInfo.goals,matchInfo.finished);
+    }
+    // console.log(outdatedMacthes);
   }
 }

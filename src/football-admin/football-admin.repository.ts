@@ -114,8 +114,10 @@ export class FootballAdminRepository {
   async getLeagues(): Promise<League[]> {
     return await this.leagueModel.find().populate('country');
   }
-  async getLeague(leagueId:string): Promise<League> {
-    return await this.leagueModel.findOne({ _id: leagueId }).populate('country');
+  async getLeague(leagueId: string): Promise<League> {
+    return await this.leagueModel
+      .findOne({ _id: leagueId })
+      .populate('country');
   }
 
   async getTeams(): Promise<Team[]> {
@@ -301,5 +303,19 @@ export class FootballAdminRepository {
     });
 
     return await newMatch.save();
+  }
+
+  async getOutdatedMatches(): Promise<Match[]> {
+    return await this.matchModel.find({
+      finished: false,
+      date: { $lt: new Date().getTime() },
+    });
+  }
+
+  async updateOutdatedMatch(matchId, goals, finished) {
+    let match = await this.matchModel.findOne({ _id: matchId });
+    match.goals = goals;
+    match.finished = finished;
+    match.save()
   }
 }

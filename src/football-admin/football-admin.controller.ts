@@ -133,4 +133,18 @@ export class FootballAdminController {
       return matches;
     }
   }
+
+  @Get('updateOutdatedMatches')
+  async updateOutdatedMatches(@Req() req) {
+    req.on('close', () => this.footballAdminService.closePuppeteerBrowser());
+    await this.footballAdminService.launchPuppeteerBrowser();
+
+    try {
+      await this.footballAdminService.updateOutdatedMatches();
+    } catch (err) {
+      console.log('errro:', err);
+    } finally {
+      await this.footballAdminService.closePuppeteerBrowser();
+    }
+  }
 }

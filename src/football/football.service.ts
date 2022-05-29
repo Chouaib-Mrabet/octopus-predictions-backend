@@ -8,6 +8,7 @@ import { Model } from 'mongoose';
 import { League, LeagueDocument } from 'src/schemas/league.schema';
 import { Logo, LogoDocument } from 'src/schemas/logo.schema';
 import { Flag, FlagDocument } from 'src/schemas/flag.schema';
+const ObjectID = require('mongodb').ObjectID;
 
 @Injectable()
 export class FootballService {
@@ -50,17 +51,19 @@ export class FootballService {
   async getLeaguesByCountries(): Promise<any[]> {
     const countries = await this.getCountries();
 
-    let List = [];
+    let leagues = await this.getLeagues();
+    let leaguesByCountries = [];
 
-    for (let i = 0; i < countries.length; i++) {
-      let item = {
-        country: countries[i],
-        leagues: await this.getLeaguesByCountry(countries[i]._id),
-      };
-      List.push(item);
+    for (let country of countries) {
+      leaguesByCountries.push({
+        country: country,
+        leagues: leagues.filter((league) =>
+          league.country._id.equals(country._id),
+        ),
+      });
     }
 
-    return List;
+    return leaguesByCountries;
   }
 
   async getTeamById(id: string): Promise<Team> {
@@ -89,7 +92,9 @@ export class FootballService {
   }
 
   async getMatchById(id: string): Promise<Match> {
-    let match = this.matchModel.findOne({ _id: id }).populate({ path: 'season', populate: { path: 'league' } });
+    let match = this.matchModel
+      .findOne({ _id: id })
+      .populate({ path: 'season', populate: { path: 'league' } });
 
     return match;
   }
@@ -177,8 +182,7 @@ export class FootballService {
       })
       .populate('homeTeam')
       .populate('awayTeam')
-      .populate({ path: 'season', populate: { path: 'league' } });;
-
+      .populate({ path: 'season', populate: { path: 'league' } });
 
     return matches;
   }

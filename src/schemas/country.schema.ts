@@ -6,7 +6,7 @@ import { Flag } from './flag.schema';
 export type CountryDocument = Country & Document;
 
 @Schema({ timestamps: true })
-export class Country {
+export class Country extends Document{
   @Prop({
     required: true,
     index: true,

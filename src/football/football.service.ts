@@ -55,7 +55,7 @@ export class FootballService {
     for (let i = 0; i < countries.length; i++) {
       let item = {
         country: countries[i],
-        leagues: await this.getLeaguesByCountry(countries[i].name),
+        leagues: await this.getLeaguesByCountry(countries[i]._id),
       };
       List.push(item);
     }

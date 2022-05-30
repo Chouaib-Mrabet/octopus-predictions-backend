@@ -150,6 +150,18 @@ export class FootballService {
     }
   }
 
+  async getMatchesByLeague(leagueId: string, status: number): Promise<Match[]> {
+    let season = await this.seasonModel.findOne({
+      $and: [{ league: leagueId }, { finished: false }],
+    });
+
+    if (season) {
+      let seasonId = season._id.toString();
+
+      return this.getMatchesBySeason(seasonId, status);
+    }
+    return [];
+  }
   async getSeasonsByLeague(leagueId: string): Promise<Season[]> {
     let seasons = await this.seasonModel.find({ league: leagueId });
 

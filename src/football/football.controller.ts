@@ -171,12 +171,40 @@ export class FootballController {
 
   // List of NOT finished matches per Season :
   @Get('/:seasonId/matches/notfinished')
-  @ApiOperation({ summary: 'Get Matches by Season Id' })
+  @ApiOperation({ summary: 'Get not finished Matches by Season Id' })
   async getNotFinishedMatchesBySeasonId(
     @Param('seasonId') seasonId: string,
   ): Promise<Match[]> {
     let matchesBySeason = await this.footballService.getMatchesBySeason(
       seasonId,
+      3,
+    );
+
+    return matchesBySeason;
+  }
+
+  // List of Finished Matches per League :
+  @Get('/:leagueId/finished/matches')
+  @ApiOperation({ summary: 'Get Finished Matches by League Id' })
+  async getFinishedMatchesByLeagueId(
+    @Param('leagueId') leagueId: string,
+  ): Promise<Match[]> {
+    let matchesBySeason = await this.footballService.getMatchesByLeague(
+      leagueId,
+      2,
+    );
+
+    return matchesBySeason;
+  }
+
+  // List of NOT finished matches per League :
+  @Get('/:leagueId/notfinished/matches')
+  @ApiOperation({ summary: 'Get Matches by Season Id' })
+  async getNotFinishedMatchesByLeagueId(
+    @Param('leagueId') leagueId: string,
+  ): Promise<Match[]> {
+    let matchesBySeason = await this.footballService.getMatchesBySeason(
+      leagueId,
       3,
     );
 

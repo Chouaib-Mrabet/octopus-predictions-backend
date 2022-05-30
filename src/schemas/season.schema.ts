@@ -3,11 +3,12 @@ import { Type } from 'class-transformer';
 import mongoose from 'mongoose';
 import { League } from './league.schema';
 import { Team } from './team.schema';
+import { Document } from 'mongoose';
 
 export type SeasonDocument = Season & Document;
 
 @Schema({ timestamps: true })
-export class Season {
+export class Season extends Document {
   @Prop({
     required: true,
     trim: true,

@@ -644,7 +644,7 @@ export class FootballAdminService {
       if (
         await page.$eval(
           '.detailScore__status',
-          (element) => element.textContent == 'Finished',
+          (element) => ['Finished','After Extra Time','After Penalties','Awarded','Walkover'].indexOf(element.textContent)>-1,
         )
       ) {
         finished = true;
@@ -696,6 +696,5 @@ export class FootballAdminService {
       );
       this.footballAdminRepository.updateOutdatedMatch(match['id'],matchInfo.goals,matchInfo.finished);
     }
-    // console.log(outdatedMacthes);
   }
 }

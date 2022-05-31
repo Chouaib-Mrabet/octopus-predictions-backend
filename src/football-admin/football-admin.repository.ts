@@ -316,6 +316,6 @@ export class FootballAdminRepository {
     let match = await this.matchModel.findOne({ _id: matchId });
     match.goals = goals;
     match.finished = finished;
-    match.save()
+    await match.save()
   }
 }

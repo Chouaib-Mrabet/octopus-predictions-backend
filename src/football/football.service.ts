@@ -136,17 +136,29 @@ export class FootballService {
   async getMatchesBySeason(seasonId: string, status: number): Promise<Match[]> {
     if (status == 1) {
       // All matches :
-      return await this.matchModel.find({ season: seasonId });
+      return await this.matchModel
+        .find({ season: seasonId })
+        .populate('homeTeam')
+        .populate('awayTeam')
+        .populate({ path: 'season', populate: { path: 'league' } });
     } else if (status == 2) {
       // Finished Matches :
-      return await this.matchModel.find({
-        $and: [{ season: seasonId }, { finished: true }],
-      });
+      return await this.matchModel
+        .find({
+          $and: [{ season: seasonId }, { finished: true }],
+        })
+        .populate('homeTeam')
+        .populate('awayTeam')
+        .populate({ path: 'season', populate: { path: 'league' } });
     } else {
       // Not Finished Matches :
-      return await this.matchModel.find({
-        $and: [{ season: seasonId }, { finished: false }],
-      });
+      return await this.matchModel
+        .find({
+          $and: [{ season: seasonId }, { finished: false }],
+        })
+        .populate('homeTeam')
+        .populate('awayTeam')
+        .populate({ path: 'season', populate: { path: 'league' } });
     }
   }
 
@@ -162,6 +174,7 @@ export class FootballService {
     }
     return [];
   }
+
   async getSeasonsByLeague(leagueId: string): Promise<Season[]> {
     let seasons = await this.seasonModel.find({ league: leagueId });
 

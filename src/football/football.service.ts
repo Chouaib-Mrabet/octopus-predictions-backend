@@ -232,4 +232,16 @@ export class FootballService {
 
     return leagues;
   }
+
+  async getAllMatchesByLeague(leagueId: string): Promise<Match[]> {
+    let league = await this.leagueModel.findOne({ _id: leagueId });
+    let leagueSeasons = await this.seasonModel.find({ league: league });
+    let matches = await this.matchModel.find({
+      season: { $in: leagueSeasons },
+    })
+    .sort({
+      date: -1,
+    }).populate('homeTeam').populate('awayTeam');
+    return matches;
+  }
 }

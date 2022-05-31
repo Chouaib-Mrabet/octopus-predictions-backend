@@ -247,4 +247,16 @@ export class FootballController {
 
     return seasonsByLeague;
   }
+
+
+  // all matches by league
+  @Get('/:leagueId/all/matches')
+  @ApiOperation({ summary: 'Get all matches by league' })
+  async getAllMatchesByLeague(@Param('leagueId') leagueId: string):Promise<Match[]>{
+    return this.footballService.getAllMatchesByLeague(leagueId)
+  }
+
+
+
+
 }

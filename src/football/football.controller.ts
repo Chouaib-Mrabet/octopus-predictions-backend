@@ -60,6 +60,13 @@ export class FootballController {
     return leagues;
   }
 
+  // Get Season by id :
+  @Get('season/:id')
+  @ApiOperation({ summary: 'Get Season by Id' })
+  async getSeasonById(@Param('id') id: string): Promise<Season> {
+    return this.footballService.getSeasonById(id);
+  }
+
   // List of All teams :
   @Get('teams')
   @ApiOperation({ summary: 'Get All Teams' })
@@ -248,15 +255,12 @@ export class FootballController {
     return seasonsByLeague;
   }
 
-
   // all matches by league
   @Get('/:leagueId/all/matches')
   @ApiOperation({ summary: 'Get all matches by league' })
-  async getAllMatchesByLeague(@Param('leagueId') leagueId: string):Promise<Match[]>{
-    return this.footballService.getAllMatchesByLeague(leagueId)
+  async getAllMatchesByLeague(
+    @Param('leagueId') leagueId: string,
+  ): Promise<Match[]> {
+    return this.footballService.getAllMatchesByLeague(leagueId);
   }
-
-
-
-
 }

@@ -27,6 +27,10 @@ export class FootballService {
     return await this.countryModel.findOne({ _id: id });
   }
 
+  async getSeasonById(id: string): Promise<Season> {
+    return await this.seasonModel.findOne({ _id: id });
+  }
+
   async getCountries(): Promise<Country[]> {
     return await this.countryModel.find();
   }
@@ -236,12 +240,15 @@ export class FootballService {
   async getAllMatchesByLeague(leagueId: string): Promise<Match[]> {
     let league = await this.leagueModel.findOne({ _id: leagueId });
     let leagueSeasons = await this.seasonModel.find({ league: league });
-    let matches = await this.matchModel.find({
-      season: { $in: leagueSeasons },
-    })
-    .sort({
-      date: -1,
-    }).populate('homeTeam').populate('awayTeam');
+    let matches = await this.matchModel
+      .find({
+        season: { $in: leagueSeasons },
+      })
+      .sort({
+        date: -1,
+      })
+      .populate('homeTeam')
+      .populate('awayTeam');
     return matches;
   }
 }
